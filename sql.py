@@ -8,7 +8,7 @@ def initTables(cursor):
       password  TEXT NOT NULL, 
       name TEXT NOT NULL,
       mahzor TEXT NOT NULL,
-      strikes INTEGER NOT NULL CHECK(strikes>0)
+      strikes INTEGER NOT NULL CHECK(strikes=>0)
       )
     """
     cursor.execute(sql)
@@ -37,7 +37,7 @@ def initTables(cursor):
     
 def addUser(cursor):
   try:
-    sql = "INSERT into users (username, password, name, strikes) VALUES ('"
+    sql = "INSERT into users (username, password, name, mahzor, strikes) VALUES ('"
     sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
     cursor.execute(sql)
   except sqlite3.Error as e:
@@ -51,12 +51,18 @@ def showMenu():
     while (keepOn):
       print("""
         1. Initiate Tables
-        2. Add User""")
+        2. Add User
+        0. Exit""")
       choice = input("Enter your choice: ")
       if choice == "1":
         initTables(stmt)
       elif choice == "2":
         addUser(stmt)
+      elif choice == "0":
+        keepOn = False
+        conn.commit()
+        conn.close()
+        print("Changes saved. Goodbye!")
   except sqlite3.Error as e:
      print(f"SQL Error: {e}")
 
