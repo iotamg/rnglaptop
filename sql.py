@@ -12,9 +12,18 @@ def initTables(cursor):
       )
     """
     cursor.execute(sql)
+    sql = """
+    CREATE TABLE IF NOT EXISTS laptops(
+        riginalID TEXT NOT NULL,
+        grade TEXT NOT NULL,
+        numer TEXT NOT NULL,
+        timeOfPerchess DATE NOT NULL
+    )
+    """
+    cursor.execute(sql)
 
   except sqlite3.Error as e:
-     print("Error")
+     print(f"SQL Error: {e}")
     
 def addUser(cursor):
   try:
@@ -22,7 +31,7 @@ def addUser(cursor):
     sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', 0)"
     cursor.execute(sql)
   except sqlite3.Error as e:
-     print("Error")
+     print(f"SQL Error: {e}")
 
 def showMenu():
   keepOn = True
@@ -39,7 +48,7 @@ def showMenu():
       elif choice == "2"
         addUser(stmt)
   except sqlite3.Error as e:
-     print("Error")
+     print(f"SQL Error: {e}")
   conn.close()
 
 def main():
