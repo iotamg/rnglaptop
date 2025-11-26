@@ -62,7 +62,6 @@ def showMenu():
         keepOn = False
         conn.commit()
         conn.close()
-        print("Changes saved. Goodbye!")
   except sqlite3.Error as e:
      print(f"SQL Error: {e}")
 
