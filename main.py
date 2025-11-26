@@ -1,0 +1,47 @@
+import os
+
+def display_script():
+    print("=" * 60)
+    print("REPLIT TO RASPBERRY PI SYNC SCRIPT")
+    print("=" * 60)
+    print()
+    print("Your sync script is ready! Here's how to use it:")
+    print()
+    print("-" * 60)
+    print("STEP 1: Connect this Replit to GitHub")
+    print("-" * 60)
+    print("  - Click the Git tab (branch icon) in Replit")
+    print("  - Connect to GitHub and create a repository")
+    print("  - Push your code")
+    print()
+    print("-" * 60)
+    print("STEP 2: Copy the script to your Raspberry Pi")
+    print("-" * 60)
+    print("  Run this on your Pi:")
+    print()
+    print('  curl -O https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/sync_to_pi.sh')
+    print('  chmod +x sync_to_pi.sh')
+    print()
+    print("-" * 60)
+    print("STEP 3: Run the sync script on your Pi")
+    print("-" * 60)
+    print("  ./sync_to_pi.sh https://github.com/YOUR_USERNAME/YOUR_REPO /home/pi/my-project")
+    print()
+    print("  The script will:")
+    print("  - Clone your repo (first time only)")
+    print("  - Check for updates every 10 seconds")
+    print("  - Auto-pull when you push changes from Replit")
+    print()
+    print("-" * 60)
+    print("SYNC SCRIPT CONTENTS:")
+    print("-" * 60)
+    
+    with open("sync_to_pi.sh", "r") as f:
+        print(f.read())
+    
+    print("=" * 60)
+    print("Copy sync_to_pi.sh to your Raspberry Pi and run it!")
+    print("=" * 60)
+
+if __name__ == "__main__":
+    display_script()
