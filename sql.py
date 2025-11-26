@@ -2,7 +2,15 @@ import sqlite3
 
 def initTables(cursor):
   try:
-    sql = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, name TEXT, strikes INTEGER)"
+    sql = """
+    CREATE TABLE IF NOT EXISTS users (
+      username TEXT NOT NULL PRIMARY KEY,
+      password  TEXT NOT NULL, 
+      name TEXT NOT NULL,
+      mahzor TEXT NOT NULL,
+      strikes INTEGER NOT NULL CHECK(strikes>0)
+      )
+    """
     cursor.execute(sql)
 
   except sqlite3.Error as e:
@@ -19,7 +27,7 @@ def addUser(cursor):
 def showMenu():
   keepOn = True
   try:
-    conn = sqlite3.connect('RNGL.db')  # Creates a new database file if it doesn’t exist
+    conn = sqlite3.connect('RNGL.db')
     stmt = conn.cursor()
     while (keepOn)
       print("""
