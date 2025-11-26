@@ -17,8 +17,18 @@ def initTables(cursor):
         regional_id TEXT NOT NULL,
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
-        date_of_purchess DATE NOT NULL
-    )
+        date_of_purchase DATE NOT NULL
+    )"""
+    cursor.execute(sql)
+    sql = """
+      CREATE TABLE IF NOT EXISTS BOROWS(
+        riginalID INTEGER NOT NULL REFERENCES laptops(riginalID),
+        username INTEGER NOT NULL REFERENCES users(username),
+        startOfB datetime NOT NULL,
+        endOfB datetime CHECK(endOfB>startOfB),
+        hasRiterned BOOLEAN NOT NULL,
+        PRIMARY KEY (riginalID, username)
+      )
     """
     cursor.execute(sql)
 
@@ -28,7 +38,7 @@ def initTables(cursor):
 def addUser(cursor):
   try:
     sql = "INSERT into users (username, password, name, strikes) VALUES ('"
-    sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', 0)"
+    sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
     cursor.execute(sql)
   except sqlite3.Error as e:
      print(f"SQL Error: {e}")
@@ -52,4 +62,4 @@ def showMenu():
 
 def main():
   showMenu()
-  
+main()
