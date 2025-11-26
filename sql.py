@@ -1,18 +1,18 @@
 import sqlite3
 
-def initTables(stmt):
+def initTables(cursor):
   try:
-    stmt = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, name TEXT, strikes INTEGER)"
-    stmt.execute(stmt)
+    sql = "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, name TEXT, strikes INTEGER)"
+    cursor.execute(sql)
 
   except sqlite3.Error as e:
      print("Error")
     
-def addUser(stmt):
+def addUser(cursor):
   try:
-    stmt = "INSERT into users (username, password, name, strikes) VALUES ('"
-    stmt += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
-    stmt.execute(stmt)
+    sql = "INSERT into users (username, password, name, strikes) VALUES ('"
+    sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', 0)"
+    cursor.execute(sql)
   except sqlite3.Error as e:
      print("Error")
 
