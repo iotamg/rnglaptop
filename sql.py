@@ -14,10 +14,10 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
     CREATE TABLE IF NOT EXISTS laptops(
-        riginalID TEXT NOT NULL,
+        regional_id TEXT NOT NULL,
         grade TEXT NOT NULL,
-        numer TEXT NOT NULL,
-        timeOfPerchess DATE NOT NULL
+        number TEXT NOT NULL,
+        date_of_purchess DATE NOT NULL
     )
     """
     cursor.execute(sql)
@@ -38,19 +38,18 @@ def showMenu():
   try:
     conn = sqlite3.connect('RNGL.db')
     stmt = conn.cursor()
-    while (keepOn)
+    while (keepOn):
       print("""
         1. Initiate Tables
         2. Add User""")
       choice = input("Enter your choice: ")
       if choice == "1":
         initTables(stmt)
-      elif choice == "2"
+      elif choice == "2":
         addUser(stmt)
   except sqlite3.Error as e:
      print(f"SQL Error: {e}")
-  conn.close()
 
 def main():
-  showMenu();
+  showMenu()
   
