@@ -10,7 +10,7 @@ def initTables(cursor):
       mahzor TEXT NOT NULL,
       strikes INT NOT NULL,
       PRIMARY KEY (id)
-    ) ENGINE=InnoDB
+    )
     """
     cursor.execute(sql)
     sql = """
@@ -20,7 +20,7 @@ def initTables(cursor):
       number TEXT NOT NULL,
       date_of_purchase DATE NOT NULL,
       PRIMARY KEY (regionalID)
-    ) ENGINE=InnoDB
+    )
     """
     cursor.execute(sql)
     sql = """
@@ -31,7 +31,7 @@ def initTables(cursor):
       endOfB TIMESTAMP NULL,
       hasReturned BOOLEAN NOT NULL,
       PRIMARY KEY (regionalID, studentID)
-    ) ENGINE=InnoDB
+    )
     """
     cursor.execute(sql)
   except pymysql.Error as e:
