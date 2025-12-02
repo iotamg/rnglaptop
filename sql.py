@@ -8,7 +8,7 @@ def initTables(cursor):
       password  TEXT NOT NULL, 
       name TEXT NOT NULL,
       mahzor TEXT NOT NULL,
-      strikes INTEGER NOT NULL CHECK(strikes=>0)
+      strikes INTEGER NOT NULL CHECK(strikes>=0)
       )
     """
     cursor.execute(sql)
@@ -27,7 +27,7 @@ def initTables(cursor):
         startOfB TIMESTAMP NOT NULL,
         endOfB TIMESTAMP CHECK(endOfB>startOfB),
         hasRiterned BOOLEAN NOT NULL,
-        PRIMARY KEY (riginalID, username)
+        PRIMARY KEY (regionalID, username)
       )
     """
     cursor.execute(sql)
@@ -45,7 +45,7 @@ def addUser(cursor):
 def showMenu():
   keepOn = True
   try:
-    conn = pymysql.connector.connect(
+    conn = pymysql.connect(
         host="localhost",
         user="root",
         password="your_password",
