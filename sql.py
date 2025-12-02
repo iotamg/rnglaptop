@@ -14,7 +14,7 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
     CREATE TABLE IF NOT EXISTS laptops(
-        regionalID TEXT PRIMARY KEY NOT NULL,
+        regionalID INTEGER PRIMARY KEY NOT NULL,
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
         date_of_purchase DATE NOT NULL
@@ -22,13 +22,15 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
       CREATE TABLE IF NOT EXISTS borrows(
-        regionalID TEXT NOT NULL REFERENCES laptops(regionalID),
-        studentID INTEGER NOT NULL REFERENCES users(id),
+        regionalID INTEGER NOT NULL,
+        studentID INTEGER NOT NULL,
         startOfB TIMESTAMP NOT NULL,
         endOfB TIMESTAMP,
         hasReturned BOOLEAN NOT NULL,
         PRIMARY KEY (regionalID, studentID),
-        CHECK(endOfB>startOfB)
+        FOREIGN KEY (regionalID) REFERENCES laptops(regionalID),
+        FOREIGN KEY (studentID) REFERENCES users(id),
+        CHECK(endOfB > startOfB)
       )
     """
     cursor.execute(sql)
