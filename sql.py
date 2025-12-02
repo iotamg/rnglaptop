@@ -48,7 +48,7 @@ def showMenu():
     conn = pymysql.connect(
         host="localhost",
         user="root",
-        password="your_password",
+        password="1234",
         database="RNG"
     )
     stmt = conn.cursor()

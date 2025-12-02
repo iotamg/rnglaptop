@@ -5,9 +5,9 @@ app = Flask(__name__)
 
 db_conn = pymysql.connect(
     host="localhost",
-    user="flask_user",
-    password="your_password",
-    database="mydb"
+    user="root",
+    password="1234",
+    database="RNG"
 )
 cursor = db_conn.cursor() # globally??
 
