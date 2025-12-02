@@ -4,34 +4,36 @@ def initTables(cursor):
   try:
     sql = """
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER NOT NULL PRIMARY KEY,
-      password  TEXT NOT NULL, 
+      id INT NOT NULL,
+      password TEXT NOT NULL, 
       name TEXT NOT NULL,
       mahzor TEXT NOT NULL,
-      strikes INTEGER NOT NULL CHECK(strikes>=0)
-      )
+      strikes INT NOT NULL,
+      PRIMARY KEY (id)
+    ) ENGINE=InnoDB
     """
     cursor.execute(sql)
     sql = """
-    CREATE TABLE IF NOT EXISTS laptops(
-        regionalID INTEGER PRIMARY KEY NOT NULL,
-        grade TEXT NOT NULL,
-        number TEXT NOT NULL,
-        date_of_purchase DATE NOT NULL
-    )"""
+    CREATE TABLE IF NOT EXISTS laptops (
+      regionalID INT NOT NULL,
+      grade TEXT NOT NULL,
+      number TEXT NOT NULL,
+      date_of_purchase DATE NOT NULL,
+      PRIMARY KEY (regionalID)
+    ) ENGINE=InnoDB
+    """
     cursor.execute(sql)
     sql = """
-      CREATE TABLE IF NOT EXISTS borrows(
-        regionalID INTEGER NOT NULL,
-        studentID INTEGER NOT NULL,
-        startOfB TIMESTAMP NOT NULL,
-        endOfB TIMESTAMP,
-        hasReturned BOOLEAN NOT NULL,
-        PRIMARY KEY (regionalID, studentID),
-        FOREIGN KEY (regionalID) REFERENCES laptops(regionalID),
-        FOREIGN KEY (studentID) REFERENCES users(id),
-        CHECK(endOfB > startOfB)
-      )
+    CREATE TABLE IF NOT EXISTS borrows (
+      regionalID INT NOT NULL,
+      studentID INT NOT NULL,
+      startOfB TIMESTAMP NOT NULL,
+      endOfB TIMESTAMP NULL,
+      hasReturned BOOLEAN NOT NULL,
+      PRIMARY KEY (regionalID, studentID),
+      FOREIGN KEY (regionalID) REFERENCES laptops (regionalID),
+      FOREIGN KEY (studentID) REFERENCES users (id)
+    ) ENGINE=InnoDB
     """
     cursor.execute(sql)
   except pymysql.Error as e:
