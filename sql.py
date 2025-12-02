@@ -22,12 +22,12 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
       CREATE TABLE IF NOT EXISTS BOROWS(
-        riginalID INTEGER NOT NULL REFERENCES laptops(riginalID),
-        studantID INTEGER NOT NULL REFERENCES users(username),
+        regionalID INTEGER NOT NULL REFERENCES laptops(regionalID),
+        studentID INTEGER NOT NULL REFERENCES users(id),
         startOfB TIMESTAMP NOT NULL,
         endOfB TIMESTAMP CHECK(endOfB>startOfB),
         hasRiterned BOOLEAN NOT NULL,
-        PRIMARY KEY (regionalID, username)
+        PRIMARY KEY (regionalID, studentID)
       )
     """
     cursor.execute(sql)
