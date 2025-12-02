@@ -5,6 +5,7 @@ app = Flask(__name__)
 @app.route('/action', methods=['GET'])
 def action_handler():
     action = request.args.get('action')
+    if action == "login":
     user = request.args.get('user')
     password = request.args.get('password')
 

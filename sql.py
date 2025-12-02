@@ -1,10 +1,10 @@
-import sqlite3
+import mysql.connector
 
 def initTables(cursor):
   try:
     sql = """
     CREATE TABLE IF NOT EXISTS users (
-      username TEXT NOT NULL PRIMARY KEY,
+      id INTEGER NOT NULL PRIMARY KEY,
       password  TEXT NOT NULL, 
       name TEXT NOT NULL,
       mahzor TEXT NOT NULL,
@@ -14,7 +14,7 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
     CREATE TABLE IF NOT EXISTS laptops(
-        regional_id TEXT NOT NULL,
+        regionalID TEXT NOT NULL,
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
         date_of_purchase DATE NOT NULL
@@ -23,30 +23,34 @@ def initTables(cursor):
     sql = """
       CREATE TABLE IF NOT EXISTS BOROWS(
         riginalID INTEGER NOT NULL REFERENCES laptops(riginalID),
-        username INTEGER NOT NULL REFERENCES users(username),
-        startOfB datetime NOT NULL,
-        endOfB datetime CHECK(endOfB>startOfB),
+        studantID INTEGER NOT NULL REFERENCES users(username),
+        startOfB TIMESTAMP NOT NULL,
+        endOfB TIMESTAMP CHECK(endOfB>startOfB),
         hasRiterned BOOLEAN NOT NULL,
         PRIMARY KEY (riginalID, username)
       )
     """
     cursor.execute(sql)
-
-  except sqlite3.Error as e:
+  except mysql.Error as e:
      print(f"SQL Error: {e}")
     
 def addUser(cursor):
   try:
-    sql = "INSERT into users (username, password, name, mahzor, strikes) VALUES ('"
-    sql += input("Enter username: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
+    sql = "INSERT into users (id, password, name, mahzor, strikes) VALUES ('"
+    sql += input("Enter id: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
     cursor.execute(sql)
-  except sqlite3.Error as e:
+  except mysql.Error as e:
      print(f"SQL Error: {e}")
 
 def showMenu():
   keepOn = True
   try:
-    conn = sqlite3.connect('RNGL.db')
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="your_password",
+        database="RNG"
+    )
     stmt = conn.cursor()
     while (keepOn):
       print("""
@@ -58,11 +62,15 @@ def showMenu():
         initTables(stmt)
       elif choice == "2":
         addUser(stmt)
+      elif choice == "3":
+        stmt.execute("SELECT * FROM users")
+        results = stmt.fetchall()
+        print(results)
       elif choice == "0":
         keepOn = False
-        conn.commit()
         conn.close()
-  except sqlite3.Error as e:
+      conn.commit()
+  except mysql.Error as e:
      print(f"SQL Error: {e}")
 
 def main():
