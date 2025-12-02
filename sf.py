@@ -1,9 +1,9 @@
 from flask import Flask, request
-import mysql.connector
+import pymysql
 
 app = Flask(__name__)
 
-db_conn = mysql.connector.connect(
+db_conn = pymysql.connect(
     host="localhost",
     user="flask_user",
     password="your_password",

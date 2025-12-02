@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 
 def initTables(cursor):
   try:
@@ -31,7 +31,7 @@ def initTables(cursor):
       )
     """
     cursor.execute(sql)
-  except mysql.Error as e:
+  except pymysql.Error as e:
      print(f"SQL Error: {e}")
     
 def addUser(cursor):
@@ -39,13 +39,13 @@ def addUser(cursor):
     sql = "INSERT into users (id, password, name, mahzor, strikes) VALUES ('"
     sql += input("Enter id: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
     cursor.execute(sql)
-  except mysql.Error as e:
+  except pymysql.Error as e:
      print(f"SQL Error: {e}")
 
 def showMenu():
   keepOn = True
   try:
-    conn = mysql.connector.connect(
+    conn = pymysql.connector.connect(
         host="localhost",
         user="root",
         password="your_password",
@@ -70,7 +70,7 @@ def showMenu():
         keepOn = False
         conn.close()
       conn.commit()
-  except mysql.Error as e:
+  except pymysql.Error as e:
      print(f"SQL Error: {e}")
 
 def main():
