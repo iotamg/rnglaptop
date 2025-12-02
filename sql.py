@@ -14,20 +14,21 @@ def initTables(cursor):
     cursor.execute(sql)
     sql = """
     CREATE TABLE IF NOT EXISTS laptops(
-        regionalID TEXT NOT NULL,
+        regionalID TEXT PRIMARY KEY NOT NULL,
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
         date_of_purchase DATE NOT NULL
     )"""
     cursor.execute(sql)
     sql = """
-      CREATE TABLE IF NOT EXISTS BOROWS(
-        regionalID INTEGER NOT NULL REFERENCES laptops(regionalID),
+      CREATE TABLE IF NOT EXISTS borrows(
+        regionalID TEXT NOT NULL REFERENCES laptops(regionalID),
         studentID INTEGER NOT NULL REFERENCES users(id),
         startOfB TIMESTAMP NOT NULL,
-        endOfB TIMESTAMP CHECK(endOfB>startOfB),
-        hasRiterned BOOLEAN NOT NULL,
-        PRIMARY KEY (regionalID, studentID)
+        endOfB TIMESTAMP,
+        hasReturned BOOLEAN NOT NULL,
+        PRIMARY KEY (regionalID, studentID),
+        CHECK(endOfB>startOfB)
       )
     """
     cursor.execute(sql)
