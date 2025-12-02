@@ -30,9 +30,7 @@ def initTables(cursor):
       startOfB TIMESTAMP NOT NULL,
       endOfB TIMESTAMP NULL,
       hasReturned BOOLEAN NOT NULL,
-      PRIMARY KEY (regionalID, studentID),
-      FOREIGN KEY (regionalID) REFERENCES laptops (regionalID),
-      FOREIGN KEY (studentID) REFERENCES users (id)
+      PRIMARY KEY (regionalID, studentID)
     ) ENGINE=InnoDB
     """
     cursor.execute(sql)
