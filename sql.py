@@ -1,6 +1,16 @@
 import pymysql
 
-def initTables(cursor):
+try:
+  conn = pymysql.connect(
+    host="localhost",
+    user="root",
+    password="1234",
+    database="RNG"
+  )
+  cursor = conn.cursor()
+except pymysql.Error as e:
+    print(f"SQL Error: {e}")
+def initTables():
   try:
     sql = """
     CREATE TABLE IF NOT EXISTS users (
@@ -35,9 +45,9 @@ def initTables(cursor):
     """
     cursor.execute(sql)
   except pymysql.Error as e:
-     print(f"SQL Error: {e}")
+    print(f"SQL Error: {e}")
     
-def addUser(cursor):
+def addUser():
   try:
     sql = "INSERT into users (id, password, name, mahzor, strikes) VALUES ('"
     sql += input("Enter id: ") + "', '" + input("Enter password: ") + "', '" + input("Enter full name: ") + "', '" + input("Enter mahzor: ") + "', 0)"
@@ -48,13 +58,6 @@ def addUser(cursor):
 def showMenu():
   keepOn = True
   try:
-    conn = pymysql.connect(
-        host="localhost",
-        user="root",
-        password="1234",
-        database="RNG"
-    )
-    stmt = conn.cursor()
     while (keepOn):
       print("""
         1. Initiate Tables

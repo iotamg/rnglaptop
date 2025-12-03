@@ -15,25 +15,22 @@ cursor = db_conn.cursor() # globally??
 def action_handler():
     action = request.args.get('action')
     if action == "login":
-        user = request.args.get('user')
-        password = request.args.get('password')
-    
-        # Print to terminal
-        print("---- Incoming Request ----")
-        print("Action:", action)
-        print("User:", user)
-        print("Password:", password)
-        print("--------------------------")
-        # SQL query
-        cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
-        result = cursor.fetchone()
-        if result[0] == 1:
-            print("Login successful")
-            return {"status": "success",
-                    "user": user}
+        if (check_login(request.args.get('user'), request.args.get('password'))):
+            return {"status": "loggedIn", "name": cursor.execute(f"SELECT name FROM users WHERE id = {request.args.get('user')}")}
         else:
-            print("Login failed")
-            return {"status": "failed"}
-
+            return {"status": "notLoggedIn"}
+    if action == "take":
+        pass
+def check_login(user, password):
+    # Print to terminal
+    print("Checking User: ", user)
+    cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
+    result = cursor.fetchone()
+    if result[0] == 1:
+        print("Login Accepted")
+        return True
+    else:
+        print("Login Failed")
+        return False
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
