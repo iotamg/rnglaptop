@@ -1,9 +1,9 @@
 from flask import Flask, request
 import pymysql
-import os
+import subprocess
 
 app = Flask(__name__)
-os.system("ngrok http --domain=linette-exudative-delorse.ngrok-free.dev 5000") # start ngrok public url forwarding to localhost:5000
+subprocess.Popen(["lxterminal", "-e", "ngrok http --domain=linette-exudative-delorse.ngrok-free.dev 5000"]) # start ngrok public url forwarding to localhost:5000
 db_conn = pymysql.connect(
     host="localhost",
     user="root",
