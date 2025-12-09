@@ -17,7 +17,8 @@ def action_handler():
     action = request.args.get('action')
     if action == "login":
         if (check_login(request.args.get('user'), request.args.get('password'))):
-            return {"status": "loggedIn", "name": cursor.execute(f"SELECT name FROM users WHERE id = {request.args.get('user')}")}
+            cursor.execute(f"SELECT name FROM users WHERE id = {request.args.get('user')}")
+            return {"status": "loggedIn", "name": cursor.fetchone()}
         else:
             return {"status": "notLoggedIn"}
     if action == "take":
