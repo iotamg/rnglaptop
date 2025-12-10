@@ -15,14 +15,32 @@ cursor = db_conn.cursor() # globally??
 @app.route('/action', methods=['GET'])
 def action_handler():
     action = request.args.get('action')
+    id = request.args.get('user')
+    password = request.args.get('password')
     if action == "login":
-        if (check_login(request.args.get('user'), request.args.get('password'))):
+        if (check_login(id, password)):
             cursor.execute(f"SELECT name FROM users WHERE id = {request.args.get('user')}")
             return {"status": "loggedIn", "name": cursor.fetchone()[0]}
         else:
             return {"status": "notLoggedIn"}
-    if action == "take":
-        pass
+    elif action == "take":
+        if (check_login(id, password)):
+            computer = getComputer(id) #0 if no computer available, else computer number
+            if computer == 0:
+                return {"status": "declined", "reason": "noComputers"}
+            else:
+                return {"status": "approved", "computer": computer}
+        else:
+            return {"status": "declined", "reason": "credentials"}
+    elif action == "return":
+        if (check_login(id, password)):
+            computer = userTakenComputers(id) #a list, of what computers are taken by that user.
+            if len(computer) == 0:
+                return {"status": "declined", "reason": "userHasNoComputers"}
+            else:
+                return {"status": "approved", "computers": computer}
+        else:
+            return {"status": "declined", "reason": "credentials"}
 def check_login(user, password):
     # Print to terminal
     print("Checking User: ", user)
@@ -36,3 +54,18 @@ def check_login(user, password):
         return False
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+def getComputer(id):
+    #if there is no computers availabe, return 0
+    #else, return the computer number
+    if (id == 666): 
+        return 5 #temporarily
+    else: 
+        return 0 #temporarily
+
+def userTakenComputers(id):
+    #return a list of computers that the user has taken
+    if (id == 666): #temporarily
+        return [1, 3, 4] 
+    else:
+        return []
+    
