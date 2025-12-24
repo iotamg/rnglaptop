@@ -23,10 +23,7 @@ def action_handler():
             result = cursor.fetchone()
             if result:
                 return {"status": "loggedIn", "name": result[0]}
-            else:
-                return {"status": "notLoggedIn"}
-        else:
-            return {"status": "notLoggedIn"}
+        return {"status": "notLoggedIn"} # if it fails to find the user
     elif action == "take":
         if (check_login(id, password)):
             computer = getComputer(id) #0 if no computer available, else computer number
@@ -52,14 +49,12 @@ def check_login(user, password):
     print("Checking User: ", user)
     cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
     result = cursor.fetchone()
-    if result and result[0] == 1:
+    if result and result[0] == 1: # if it got a result and the result is 1 (null-safe)
         print("Login Accepted")
         return True
     else:
         print("Login Failed")
         return False
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
 def getComputer(id):
     #if there is no computers availabe, return 0
     #else, return the computer number
@@ -74,4 +69,5 @@ def userTakenComputers(id):
         return [1, 3, 4] 
     else:
         return []
-    
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
