@@ -20,7 +20,11 @@ def action_handler():
     if action == "login":
         if (check_login(id, password)):
             cursor.execute(f"SELECT name FROM users WHERE id = {request.args.get('user')}")
-            return {"status": "loggedIn", "name": cursor.fetchone()[0]}
+            result = cursor.fetchone()
+            if result:
+                return {"status": "loggedIn", "name": result[0]}
+            else:
+                return {"status": "notLoggedIn"}
         else:
             return {"status": "notLoggedIn"}
     elif action == "take":
@@ -41,12 +45,14 @@ def action_handler():
                 return {"status": "approved", "computers": computer}
         else:
             return {"status": "declined", "reason": "credentials"}
+    else:
+        return {"status": "error", "reason": "invalid action"}
 def check_login(user, password):
     # Print to terminal
     print("Checking User: ", user)
     cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
     result = cursor.fetchone()
-    if result[0] == 1:
+    if result and result[0] == 1:
         print("Login Accepted")
         return True
     else:
