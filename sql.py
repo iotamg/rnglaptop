@@ -65,12 +65,12 @@ def showMenu():
         0. Exit""")
       choice = input("Enter your choice: ")
       if choice == "1":
-        initTables(stmt)
+        initTables()
       elif choice == "2":
-        addUser(stmt)
+        addUser()
       elif choice == "3":
-        stmt.execute("SELECT * FROM users")
-        results = stmt.fetchall()
+        cursor.execute("SELECT * FROM users")
+        results = cursor.fetchall()
         print(results)
       elif choice == "0":
         keepOn = False
