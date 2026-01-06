@@ -1,5 +1,7 @@
 import pymysql
 
+conn = None
+cursor = None
 try:
   conn = pymysql.connect(
     host="localhost",
@@ -10,7 +12,10 @@ try:
   cursor = conn.cursor()
 except pymysql.Error as e:
     print(f"SQL Error: {e}")
+
 def initTables():
+  if not cursor:
+    return
   try:
     sql = """
     CREATE TABLE IF NOT EXISTS users (
@@ -56,6 +61,8 @@ def initTables():
     print(f"SQL Error: {e}")
 
 def addBorow(borower,coumputer,time):
+    if not cursor:
+        return
     try:
         sql=f"""
             WHEN NOT EXISTS (SELECT 1 FROM borrows WHERE regionalID={coumputer}) 
@@ -71,6 +78,8 @@ def addBorow(borower,coumputer,time):
     except pymysql.Error as e:
         print(f"SQL Error: {e}")
 def addReturn(returner,coumputer,time):
+    if not cursor:
+        return
     try:
         sql=f"""
             UPDATE history SET reterner={returner},endDate={time} WHERE regionalID={coumputer} AND endDate IS NULL
@@ -78,12 +87,15 @@ def addReturn(returner,coumputer,time):
         cursor.execute(sql)
         sql=f"""
             DELETE FROM borrows WHERE regionalID={coumputer} 
-            AND EXISTS (SELECT 1 FROM history WHERE regionalID={coumputer} AND endDate IS NOT NULL AND endDate={time} AND reterner={returner})
+            AND EXISTS 
+            (SELECT 1 FROM history WHERE regionalID={coumputer} AND endDate IS NOT NULL AND endDate={time} AND reterner={returner})
         """
         cursor.execute(sql)
     except pymysql.Error as e:
         print(f"SQL Error: {e}")
 def addUser(id_,password_,name_,mahzor_):
+  if not cursor:
+    return
   try:
     sql = f"""INSERT into users (id, password, name, mahzor, strikes) VALUES (
     '{id_}','{password_}','{name_}','{mahzor_}')
@@ -92,13 +104,9 @@ def addUser(id_,password_,name_,mahzor_):
   except pymysql.Error as e:
      print(f"SQL Error: {e}")
 
-def returnLaptop(laptop, grade,returner):
-  try:
-    sql ="""
-        SET 
-    """
-
 def showMenu():
+  if not cursor or not conn:
+    return
   keepOn = True
   try:
     while (keepOn):
@@ -126,6 +134,8 @@ def showMenu():
   except pymysql.Error as e:
      print(f"SQL Error: {e}")
 def check_login(user, password):
+  if not cursor:
+    return False
   # Print to terminal
   print("Checking User: ", user)
   cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
@@ -153,6 +163,43 @@ def userTakenComputers(id):
 def allTakenComputers():
   #return a list of computers that are taken
   return [1, 3, 4]
+
+def login(id, password):
+    if not cursor:
+        return {"status": "notLoggedIn"}
+    if (check_login(id, password)):
+        cursor.execute(f"SELECT name FROM users WHERE id = {id}")
+        result = cursor.fetchone()
+        if result:
+            return {"status": "loggedIn", "name": result[0]}
+    return {"status": "notLoggedIn"} # if it fails to find the user
+
+def borwoComputer(id,password):
+    if (check_login(id, password)):
+        computer = getComputer(id) #0 if no computer available, else computer number
+        if computer == 0:
+            return {"status": "declined", "reason": "noComputers"}
+        else:
+            return {"status": "approved", "computer": computer}
+    else:
+        return {"status": "declined", "reason": "credentials"}
+
+def returnComputer(id,password,computer):
+    if (check_login(id, password)):
+        computer = userTakenComputers(id) #a list, of what computers are taken by that user.
+        if len(computer) == 0:
+            return {"status": "declined", "reason": "userHasNoComputers"}
+        else:
+            return {"status": "approved", "computers": computer}
+    else:
+        return {"status": "declined", "reason": "credentials"}
+
+def getAllTakenComputers(id,password):
+    if (check_login(id, password)):
+        return {"list": allTakenComputers()} #a list, of what computers are taken
+    else:
+        return {"status": "declined", "reason": "credentials"}
+
 
 def main():
   showMenu()
