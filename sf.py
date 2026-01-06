@@ -22,19 +22,9 @@ def action_handler():
     elif action == "take":
         return getComputer(id,password)
     elif action == "return":
-        if (sqlMain.check_login(id, password)):
-            computer = sqlMain.userTakenComputers(id) #a list, of what computers are taken by that user.
-            if len(computer) == 0:
-                return {"status": "declined", "reason": "userHasNoComputers"}
-            else:
-                return {"status": "approved", "computers": computer}
-        else:
-            return {"status": "declined", "reason": "credentials"}
+        return returnComputer(id,password,request.args.get('computer'))
     elif action == "listTakenComputers":
-        if (sqlMain.check_login(id, password)):
-            return {"list": sqlMain.allTakenComputers()} #a list, of what computers are taken
-        else:
-            return {"status": "declined", "reason": "credentials"}
+        return allTakenComputers(id,password)
     else:
         return {"status": "error", "reason": "invalid action"}
 
@@ -45,6 +35,7 @@ def login(id, password):
         if result:
             return {"status": "loggedIn", "name": result[0]}
     return {"status": "notLoggedIn"} # if it fails to find the user
+    
 def getComputer(id,password):
     if (sqlMain.check_login(id, password)):
         computer = sqlMain.getComputer(id) #0 if no computer available, else computer number
@@ -54,8 +45,22 @@ def getComputer(id,password):
             return {"status": "approved", "computer": computer}
     else:
         return {"status": "declined", "reason": "credentials"}
-
-
-
+        
+def returnComputer(id,password,computer):
+    if (sqlMain.check_login(id, password)):
+        computer = sqlMain.userTakenComputers(id) #a list, of what computers are taken by that user.
+        if len(computer) == 0:
+            return {"status": "declined", "reason": "userHasNoComputers"}
+        else:
+            return {"status": "approved", "computers": computer}
+    else:
+        return {"status": "declined", "reason": "credentials"}
+        
+def allTakenComputers(id,password):
+    if (sqlMain.check_login(id, password)):
+        return {"list": sqlMain.allTakenComputers()} #a list, of what computers are taken
+    else:
+        return {"status": "declined", "reason": "credentials"}
+        
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
