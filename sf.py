@@ -1,7 +1,7 @@
 from flask import Flask, request
 import pymysql
 import subprocess
-
+import sql
 app = Flask(__name__)
 subprocess.Popen(["lxterminal", "-e", "ngrok http --domain=linette-exudative-delorse.ngrok-free.dev 5000"]) # start ngrok public url forwarding to localhost:5000
 db_conn = pymysql.connect(
@@ -42,6 +42,11 @@ def action_handler():
                 return {"status": "approved", "computers": computer}
         else:
             return {"status": "declined", "reason": "credentials"}
+    elif action == "listTakenComputers":
+        if (check_login(id, password)):
+            return {"list": allTakenComputers()} #a list, of what computers are taken
+        else:
+            return {"status": "declined", "reason": "credentials"}
     else:
         return {"status": "error", "reason": "invalid action"}
 def check_login(user, password):
@@ -58,16 +63,19 @@ def check_login(user, password):
 def getComputer(id):
     #if there is no computers availabe, return 0
     #else, return the computer number
-    if (id == 666): 
+    if id == "666": 
         return 5 #temporarily
     else: 
         return 0 #temporarily
 
 def userTakenComputers(id):
     #return a list of computers that the user has taken
-    if (id == 666): #temporarily
+    if id == "666": #temporarily
         return [1, 3, 4] 
     else:
         return []
+def allTakenComputers():
+    #return a list of computers that are taken
+    return [1, 3, 4]
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
