@@ -125,6 +125,34 @@ def showMenu():
       conn.commit()
   except pymysql.Error as e:
      print(f"SQL Error: {e}")
+def check_login(user, password):
+  # Print to terminal
+  print("Checking User: ", user)
+  cursor.execute(f"SELECT EXISTS(SELECT 1 FROM users WHERE id = {user} AND password = \"{password}\")")
+  result = cursor.fetchone()
+  if result and result[0] == 1: # if it got a result and the result is 1 (null-safe)
+      print("Login Accepted")
+      return True
+  else:
+      print("Login Failed")
+      return False
+def getComputer(id):
+  #if there is no computers availabe, return 0
+  #else, return the computer number
+  if id == "666": 
+      return 5 #temporarily
+  else: 
+      return 0 #temporarily
+
+def userTakenComputers(id):
+  #return a list of computers that the user has taken
+  if id == "666": #temporarily
+      return [1, 3, 4] 
+  else:
+      return []
+def allTakenComputers():
+  #return a list of computers that are taken
+  return [1, 3, 4]
 
 def main():
   showMenu()
