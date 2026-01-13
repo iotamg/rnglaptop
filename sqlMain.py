@@ -116,6 +116,7 @@ def addUser(id_, password_, name_, mahzor_):
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
 
+
 def addComputer(id_, grade_, number_, date_, functional_):
   if not cursor:
     return
@@ -126,7 +127,7 @@ def addComputer(id_, grade_, number_, date_, functional_):
     cursor.execute(sql)
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
-  
+
 
 def showMenu():
   if not cursor or not conn:
@@ -139,6 +140,7 @@ def showMenu():
         2. Add User
         3. Add Computer
         4. Show Users
+        5. not fucntional
         0. Exit""")
       choice = input("Enter your choice: ")
       if choice == "1":
@@ -159,6 +161,16 @@ def showMenu():
         cursor.execute("SELECT * FROM users")
         results = cursor.fetchall()
         print(results)
+      elif choice == "5":
+        if input("by id? (yes to confirm)") == "yes":
+          ID = input("id=?")
+          cursor.execute(f"SET functional=0 WHERE regionalID={ID}")
+        FUCTIONAL = input("fuctional=?")
+        GRADE = input("grade=?")
+        NUMBER = input("number=?")
+        cursor.execute(
+            f"SET functional={FUCTIONAL} WHERE grade={GRADE} AND number={NUMBER}"
+        )
       elif choice == "0":
         keepOn = False
         conn.close()
