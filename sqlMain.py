@@ -33,7 +33,7 @@ def initTables():
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
         date_of_purchase DATE NOT NULL,
-        fuctional BOOLEAN NOT NULL
+        functional BOOLEAN NOT NULL
     )
     """
     cursor.execute(sql)
@@ -116,11 +116,11 @@ def addUser(id_, password_, name_, mahzor_):
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
 
-def addComputer(id_, grade_, number_, date_, fuctional_):
+def addComputer(id_, grade_, number_, date_, functional_):
   if not cursor:
     return
   try:
-    sql = f"""INSERT into laptops (regionalID, grade, number, date_of_purchase, fuctional) VALUES (
+    sql = f"""INSERT into laptops (regionalID, grade, number, date_of_purchase, functional) VALUES (
     '{id_}','{grade_}','{number_}','{date_}',1)
     """
     cursor.execute(sql)
@@ -190,7 +190,7 @@ def getComputer():
     return 0
   sql = """
     SELECT regionalID FROM laptops
-    WHERE regionalID NOT IN (SELECT regionalID FROM borrows) AND fuctional=1
+    WHERE regionalID NOT IN (SELECT regionalID FROM borrows) AND functional=1
     """
   cursor.execute(sql)
   result = cursor.fetchall()
