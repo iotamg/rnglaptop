@@ -116,6 +116,17 @@ def addUser(id_, password_, name_, mahzor_):
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
 
+def addComputer(id_, grade_, number_, date_, fuctional_):
+  if not cursor:
+    return
+  try:
+    sql = f"""INSERT into laptops (regionalID, grade, number, date_of_purchase, fuctional) VALUES (
+    '{id_}','{grade_}','{number_}','{date_}',1)
+    """
+    cursor.execute(sql)
+  except pymysql.Error as e:
+    print(f"SQL Error: {e}")
+  
 
 def showMenu():
   if not cursor or not conn:
@@ -126,6 +137,8 @@ def showMenu():
       print("""
         1. Initiate Tables
         2. Add User
+        3. Add Computer
+        4. Show Users
         0. Exit""")
       choice = input("Enter your choice: ")
       if choice == "1":
@@ -137,6 +150,12 @@ def showMenu():
         grade = input("machzor=?")
         addUser(ID, PASWORD, NAME, grade)
       elif choice == "3":
+        ID = input("id=?")
+        GRADE = input("grade=?")
+        NUMBER = input("number=?")
+        DATE = input("date=?")
+        addComputer(ID, GRADE, NUMBER, DATE, 1)
+      elif choice == "4":
         cursor.execute("SELECT * FROM users")
         results = cursor.fetchall()
         print(results)
