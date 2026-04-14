@@ -2,6 +2,10 @@ from flask import Flask, request
 import pymysql
 import subprocess
 import sqlMain
+import serial
+
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+#n = ser.readline().decode().strip()
 
 app = Flask(__name__)
 subprocess.Popen([
@@ -23,15 +27,16 @@ def action_handler():
     if action == "login":
         return sqlMain.login(id, password)
     elif action == "take":
-        return sqlMain.borwoComputer(id, password)
+        rsp = sqlMain.borrow(id, password)
+        if rsp["status"] == "approved":
+            arduino"open(rsp["computer"])
     elif action == "return":
-        return sqlMain.returnComputer(id, password,
+        return sqlMain.returnPC(id, password,
                                       request.args.get('computer'))
     elif action == "listTakenComputers":
         return sqlMain.getAllTakenComputers(id, password)
     else:
         return {"status": "error", "reason": "invalid action"}
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

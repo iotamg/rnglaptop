@@ -262,7 +262,7 @@ def login(id, password):
   return {"status": "notLoggedIn"}  # if it fails to find the user
 
 
-def borwoComputer(id, password):
+def borrow(id, password):
   if (check_login(id, password)):
     computer = getComputer()  #0 if no computer available, else computer number
     if computer == 0:
@@ -273,7 +273,7 @@ def borwoComputer(id, password):
     return {"status": "declined", "reason": "credentials"}
 
 
-def returnComputer(id, password, computer):
+def returnPC(id, password, computer):
   if (check_login(id, password)):
     computer = userTakenComputers(
         id)  #a list, of what computers are taken by that user.
