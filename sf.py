@@ -4,8 +4,8 @@ import subprocess
 import sqlMain
 import serial
 
-ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-#n = ser.readline().decode().strip()
+ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+#n = ard.readline().decode().strip()
 
 app = Flask(__name__)
 subprocess.Popen([
@@ -29,7 +29,9 @@ def action_handler():
     elif action == "take":
         rsp = sqlMain.borrow(id, password)
         if rsp["status"] == "approved":
-            arduino"open(rsp["computer"])
+            ard.write("open".encode()) # send an "open" command to the arduino
+            ard.write(rsp["computer"].encode()) # send the computer number to the arduino
+        return rsp
     elif action == "return":
         return sqlMain.returnPC(id, password,
                                       request.args.get('computer'))
