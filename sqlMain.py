@@ -18,6 +18,13 @@ def initTables():
     return
   try:
     sql = """
+    DROP TABLE IF EXISTS users;
+    DROP TABLE IF EXISTS laptops;
+    DROP TABLE IF EXISTS borrows;
+    DROP TABLE IF EXISTS history;
+    """
+    cursor.execute(sql)
+    sql = """
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER NOT NULL PRIMARY KEY,
       password  TEXT NOT NULL, 
