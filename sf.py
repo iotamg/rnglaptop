@@ -31,7 +31,7 @@ def action_handler():
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
-        return rsp
+        return rsp if 
     elif action == "return":
         return sqlMain.returnPC(id, password,
                                       request.args.get('computer'))
