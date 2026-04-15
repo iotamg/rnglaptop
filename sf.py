@@ -31,9 +31,9 @@ def action_handler():
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
-        return rsp if 
+        return rsp if ard.readline().decode().strip() == True else {"status": "declined", "reason": "untaken"}
     elif action == "return":
-        return sqlMain.returnPC(id, password,
+        rsp = sqlMain.returnPC(id, password,
                                       request.args.get('computer'))
     elif action == "listTakenComputers":
         return sqlMain.getAllTakenComputers(id, password)

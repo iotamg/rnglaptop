@@ -47,19 +47,19 @@ def initTables():
     sql = """
       CREATE TABLE IF NOT EXISTS borrows(
         regionalID INTEGER NOT NULL,
-        studentID INTEGER NOT NULL,
-        startOfB DATETIME NOT NULL,
-        PRIMARY KEY (regionalID, studentID),
+        userTake INTEGER NOT NULL,
+        start DATETIME NOT NULL,
+        PRIMARY KEY (regionalID, userTake),
         FOREIGN KEY (regionalID) REFERENCES laptops(regionalID),
-        FOREIGN KEY (studentID) REFERENCES users(id)
+        FOREIGN KEY (userTake) REFERENCES users(id)
       )
     """
     cursor.execute(sql)
     sql = """
       CREATE TABLE IF NOT EXISTS history(
          hisrotyID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-         reterner INTEGER REFERENCES users(id),
-         borworer INTEGER REFERENCES users(id) NOT NULL,
+         userTake INTEGER REFERENCES users(id),
+         userReturn INTEGER REFERENCES users(id) NOT NULL,
          regionalID INTEGER  REFERENCES laptops(regionalID) NOT NULL,
          startDate DATETIME NOT NULL,
      endDate DATETIME NOT NULL CHECK(endDate>startDate)
@@ -69,18 +69,15 @@ def initTables():
     print(f"SQL Error: {e}")
 
 
-def addBorow(borower, coumputer, time):
+def addBorrow(borrower, coumputer):
   if not cursor:
-    return
+    return False
   try:
     sql = f"""
             WHEN NOT EXISTS (SELECT 1 FROM borrows WHERE regionalID={coumputer}) 
-            THEN 
-              INSERT into history(borworer,regionalID,startDate) VALUES (
-              {borower},{coumputer},{time}
-              )
-              INSERT into borrows(regionalID,studentID,startOfB) VALUES (
-              {coumputer},{borower},{time}
+            THEN
+              INSERT into borrows(regionalID,userTake,start) VALUES (
+              {coumputer},{borrower},NOW()
               )
         """
     cursor.execute(sql)
@@ -88,9 +85,9 @@ def addBorow(borower, coumputer, time):
     print(f"SQL Error: {e}")
 
 
-def addReturn(returner, coumputer, time):
+def addReturn(returner, coumputer):
   if not cursor:
-    return "not connected"
+    return False
   try:
     cursor.execute(f"SELECT 1 FROM borrows WHERE regionalID={coumputer}")
     result = cursor.fetchone()
