@@ -36,7 +36,7 @@ def initTables():
     cursor.execute(sql)
     sql = """
     CREATE TABLE IF NOT EXISTS laptops(
-        regionalID INTEGER PRIMARY KEY NOT NULL,
+        laptopID INTEGER PRIMARY KEY NOT NULL,
         grade TEXT NOT NULL,
         number TEXT NOT NULL,
         date_of_purchase DATE NOT NULL,
@@ -46,11 +46,11 @@ def initTables():
     cursor.execute(sql)
     sql = """
       CREATE TABLE IF NOT EXISTS borrows(
-        regionalID INTEGER NOT NULL,
+        laptopID INTEGER NOT NULL,
         userTake INTEGER NOT NULL,
         start DATETIME NOT NULL,
-        PRIMARY KEY (regionalID, userTake),
-        FOREIGN KEY (regionalID) REFERENCES laptops(regionalID),
+        PRIMARY KEY (laptopID, userTake),
+        FOREIGN KEY (laptopID) REFERENCES laptops(laptopID),
         FOREIGN KEY (userTake) REFERENCES users(id)
       )
     """
@@ -60,50 +60,53 @@ def initTables():
          hisrotyID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
          userTake INTEGER REFERENCES users(id),
          userReturn INTEGER REFERENCES users(id) NOT NULL,
-         regionalID INTEGER  REFERENCES laptops(regionalID) NOT NULL,
-         startDate DATETIME NOT NULL,
-     endDate DATETIME NOT NULL CHECK(endDate>startDate)
+         laptopID INTEGER  REFERENCES laptops(laptopID) NOT NULL,
+         start DATETIME NOT NULL,
+     end DATETIME NOT NULL CHECK(endDate>startDate)
       );
     """
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
 
 
-def addBorrow(borrower, coumputer):
+def addBorrow(borrower, pc):
   if not cursor:
     return False
   try:
     sql = f"""
-            WHEN NOT EXISTS (SELECT 1 FROM borrows WHERE regionalID={coumputer}) 
+            WHEN NOT EXISTS (SELECT 1 FROM borrows WHERE laptopID={pc}) 
             THEN
-              INSERT into borrows(regionalID,userTake,start) VALUES (
-              {coumputer},{borrower},NOW()
-              )
+              INSERT into borrows(laptopID,userTake,start) VALUES (
+              {pc},{borrower},NOW()
+              );
         """
     cursor.execute(sql)
+    return True if cursor.rowcount == 1 else False
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
 
 
-def addReturn(returner, coumputer):
+def closeBorrow(returner, pc):
   if not cursor:
     return False
   try:
-    cursor.execute(f"SELECT 1 FROM borrows WHERE regionalID={coumputer}")
+    cursor.execute(f"SELECT 1 FROM borrows WHERE laptopID={pc}")
     result = cursor.fetchone()
     if not result:
-      return "computer not taken"
+      return False
     sql = f"""
-            UPDATE history SET reterner={returner},endDate={time} WHERE regionalID={coumputer} AND endDate IS NULL
+      INSERT INTO history (userTake, userReturn, laptopID, start, end)
+SELECT userTake, {returner}, laptopID, start, NOW()
+FROM borrows
+WHERE laptopID = {pc}
+LIMIT 1;
         """
     cursor.execute(sql)
     sql = f"""
-            DELETE FROM borrows WHERE regionalID={coumputer} 
-            AND EXISTS 
-            (SELECT 1 FROM history WHERE regionalID={coumputer} AND endDate IS NOT NULL AND endDate={time} AND reterner={returner})
+            DELETE FROM borrows WHERE laptopID = {pc};
         """
     cursor.execute(sql)
-    return "worked"
+    return True if cursor.rowcount == 1 else False
   except pymysql.Error as e:
     print(f"SQL Error: {e}")
     return f"{e}"
@@ -125,7 +128,7 @@ def addComputer(id_, grade_, number_, date_, functional_):
   if not cursor:
     return
   try:
-    sql = f"""INSERT into laptops (regionalID, grade, number, date_of_purchase, functional) VALUES (
+    sql = f"""INSERT into laptops (laptopID, grade, number, date_of_purchase, functional) VALUES (
     '{id_}','{grade_}','{number_}','{date_}',1)
     """
     cursor.execute(sql)
@@ -168,7 +171,7 @@ def showMenu():
       elif choice == "5":
         if input("by id? (yes to confirm)") == "yes":
           ID = input("id=?")
-          cursor.execute(f"SET functional=0 WHERE regionalID={ID}")
+          cursor.execute(f"SET functional=0 WHERE laptopID={ID}")
         FUCTIONAL = input("fuctional=?")
         GRADE = input("grade=?")
         NUMBER = input("number=?")
@@ -205,8 +208,8 @@ def getComputer():
   if not cursor:
     return 0
   sql = """
-    SELECT regionalID FROM laptops
-    WHERE regionalID NOT IN (SELECT regionalID FROM borrows) AND functional=1
+    SELECT laptopID FROM laptops
+    WHERE laptopID NOT IN (SELECT laptopID FROM borrows) AND functional=1
     """
   cursor.execute(sql)
   result = cursor.fetchall()
@@ -221,9 +224,9 @@ def userTakenComputers(id):
   if not cursor:
     return []
   sql = f"""
-    SELECT regionalID FROM history
+    SELECT laptopID FROM history
     WHERE borworer={id}
-    GROUP BY regionalID
+    GROUP BY laptopID
     """
   cursor.execute(sql)
   result = cursor.fetchall()
@@ -237,8 +240,8 @@ def allTakenComputers():
   if not cursor:
     return []
   sql = """
-    SELECT regionalID FROM borrows
-    GROUP BY regionalID
+    SELECT laptopID FROM borrows
+    GROUP BY laptopID
     """
   cursor.execute(sql)
   result = cursor.fetchall()
@@ -270,17 +273,12 @@ def borrow(id, password):
     return {"status": "declined", "reason": "credentials"}
 
 
-def returnPC(id, password, computer):
+def returnPC(id, password, pc):
   if (check_login(id, password)):
-    computer = userTakenComputers(
-        id)  #a list, of what computers are taken by that user.
-    worked = addReturn(id, computer, t.time)
-    if worked == "computer not taken":
-      return {"status": "declined", "reason": "computer not taken"}
-    elif worked == "worked":
-      return {"status": "approved", "computer": computer}
-    else:
-      return {"status": "declined", "reason": f"{worked}"}
+    pcs = allTakenComputers()
+    if pc not in pcs:
+      return {"status": "declined", "reason": "notTaken"}
+    return {"status": "approved", "computer": pc}
   else:
     return {"status": "declined", "reason": "credentials"}
 

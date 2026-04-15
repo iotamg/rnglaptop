@@ -3,6 +3,7 @@ import pymysql
 import subprocess
 import sqlMain
 import serial
+from datetime import datetime
 
 ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 #n = ard.readline().decode().strip()
@@ -31,10 +32,28 @@ def action_handler():
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
-        return rsp if ard.readline().decode().strip() == True else {"status": "declined", "reason": "untaken"}
+        if ard.readline().decode().strip() == False: #False if the pc isnt in the slot
+            if (!sqlMain.addBorrow(id, rsp["computer"])) print(f"{datetime.now()}\tError:\tPC taken but not added to database.")
+            return rsp
+        else: return {"status": "declined", "reason": "untaken"}
     elif action == "return":
-        rsp = sqlMain.returnPC(id, password,
-                                      request.args.get('computer'))
+        userTakenComputers = sqlMain.userTakenComputers(id)
+        if len(userTakenComputers) == 0:
+            return {"status": "declined", "reason": "userHasNoComputers"}
+        if len(userTakenComputers) == 1:
+            rsp = sqlMain.returnPC(id, password,
+                                      userTakenComputers[0])
+            if rsp["status"] == "approved":
+                ard.write("open".encode()) # send a "open" command to the arduino
+                ard.write(userTakenComputers[0].encode()) # send the computer number to the arduino
+                if ard.readline().decode().strip() == True: #True if the pc is in the slot
+                    if (!sqlMain.closeBorrow(id, userTakenComputers[0])): print(f"{datetime.now()}\tError:\tPC returned but not updated in the database.")
+                else: return {"status": "declined", "reason": "unreturned"}
+            return rsp
+        else:
+            return {"status": "declined", "reason": "multipleComputers", "list": userTakenComputers}
+                
+        
     elif action == "listTakenComputers":
         return sqlMain.getAllTakenComputers(id, password)
     else:
