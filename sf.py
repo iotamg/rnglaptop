@@ -35,11 +35,13 @@ def action_handler():
         if ard.readline().decode().strip() == False: #False if the pc isnt in the slot
             if (!sqlMain.addBorrow(id, rsp["computer"])) print(f"{datetime.now()}\tError:\tPC taken but not added to database.")
             return rsp
-        else: return {"status": "declined", "reason": "untaken"}
+        else: return {"status": "declined", "reason": "notTaken"}
     elif action == "return":
-        userTakenComputers = sqlMain.userTakenComputers(id)
+        if (request.args.get('computer') is None): 
+            userTakenComputers = sqlMain.userTakenComputers(id)
+        else: userTakenComputers = [request.args.get('computer')]
         if len(userTakenComputers) == 0:
-            return {"status": "declined", "reason": "userHasNoComputers"}
+            return {"status": "declined", "reason": "userHasNoComputers"}0000000000
         if len(userTakenComputers) == 1:
             rsp = sqlMain.returnPC(id, password,
                                       userTakenComputers[0])
