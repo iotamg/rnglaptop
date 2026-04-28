@@ -41,7 +41,7 @@ def action_handler():
             userTakenComputers = sqlMain.userTakenComputers(id)
         else: userTakenComputers = [request.args.get('computer')]
         if len(userTakenComputers) == 0:
-            return {"status": "declined", "reason": "userHasNoComputers"}0000000000
+            return {"status": "declined", "reason": "userHasNoComputers", "taken": sqlMain.getAllTakenComputers()}
         if len(userTakenComputers) == 1:
             rsp = sqlMain.returnPC(id, password,
                                       userTakenComputers[0])
