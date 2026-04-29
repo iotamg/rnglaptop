@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import threading
 
-thread = threading.Thread(target=backgroundWorker, args=(0,0,0)) ## just temp place holder
+
 
 ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 #n = ard.readline().decode().strip()
@@ -33,6 +33,7 @@ def action_handler():
     if action == "login":
         return sqlMain.login(id, password)
     elif action == "take":
+        thread.join() ##don't execute anything until thread is closed
         rsp = sqlMain.borrow(id, password)
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
@@ -69,45 +70,22 @@ def backgroundWorker(user,pc,action): ##pc num, action True if return, False if 
     ard.write(pc.encode())
     wait = time.time()
     while ard.in_waiting == 0:
-        if time.time() - start > 2:
+        if time.time() - wait > 2:
             print(f"{datetime.now()}\tError:\tArduino timeout.")
-            break #stop waiting for the arduino
+            return #stop waiting for the arduino
         time.sleep(0.5)
     if action: ## if action is return
-        if ard.readline().decode().strip() == "False":
-            
+        if ard.readline().decode().strip() == "True": ##if actually returned
+            sqlMain.closeBorrow(user, pc)
+        else:
+            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be returned but user didn't returned in time.")
     else: ##if action is take
         if ard.readline().decode().strip() == "False": ##if actually taken
             sqlMain.addBorrow(user, pc)
         else:
             print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
-            
-    
-    ans = True if ard.readline().decode().strip() == "True" #True if the pc is in the slot
-    
-    ### if falslely, adjust sql acrodingly to irl
-def backgroundWorker():
-    while True:
-        if openedLately:
-            openedLately = False
-            if (gpio read if door open): ########
-                ard.write("count".encode())
-                wait = time.time()
-                while ard.in_waiting == 0:
-                    if time.time() - start > 2:
-                        print(f"{datetime.now()}\tError:\tArduino timeout.")
-                        break #stop waiting for the arduino
-                    time.sleep(0.5)
-                ans = are.readline().decode().strip() #returing 5 digits of which pc are counted for
-                for (i = 0; i < 5; i+=1):
-                    if (ans[i] == "1"):
-                        if sqlMain.isTaken(i+1):
-                            sqlMain.closeBorrow(0, i+1) #system user ID is 0
-                            print(f"{datetime.now()}\tError:\tPC {i+1} was registered as taken but is counted for. Records fixed.")
-                    elif !sqlMain.isTaken(i+1):
-                        sqlMain.addBorrow(0, i+1) #system user ID is 0
-                        print(f"{datetime.now()}\tError:\tPC {i+1} was registered as returned but is counted for. Records fixed.")
-            
+
+thread = threading.Thread(target=backgroundWorker, args=(0,0,0)) ## just temp place holder
         
 
 if __name__ == "__main__":
