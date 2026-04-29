@@ -5,6 +5,7 @@ import sqlMain
 import serial
 from datetime import datetime
 import time
+import threading
 
 ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 #n = ard.readline().decode().strip()
@@ -68,6 +69,26 @@ def action_handler():
         return sqlMain.getAllTakenComputers(id, password)
     else:
         return {"status": "error", "reason": "invalid action"}
+
+def backgroundWorker():
+    while True:
+        if openedLately:
+            openedLately = False
+            if (gpio read if door open): ########
+                ard.write("count".encode())
+                wait = time.time()
+                while ard.in_waiting == 0:
+                    if time.time() - start > 2:
+                        print(f"{datetime.now()}\tError:\tArduino timeout.")
+                        break #stop waiting for the arduino
+                    time.sleep(0.5)
+                ans = are.readline().decode().strip() #returing 5 digits of which pc are counted for
+                for (i = 0; i < 5; i+=1):
+                    if (ans[i] == "1"):
+                        if sqlMain.checkUntaken(i+1): print(f"{datetime.now()}\tError:\tPC {i+1} was registered as taken but is counted for. Records fixed.")
+                
+            
+        
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

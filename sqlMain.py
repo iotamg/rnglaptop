@@ -289,6 +289,18 @@ def getAllTakenComputers(id, password):
   else:
     return {"status": "declined", "reason": "credentials"}
 
+def checkUntaken(pc):
+  if not cursor:
+    return False
+  sql = f"""
+    SELECT laptopID FROM laptops
+    WHERE laptopID IN (SELECT laptopID FROM borrows) AND laptopID={pc}
+    """
+  cursor.execute(sql)
+  result = cursor.fetchall()
+  if len(result) == 0:  #pc isnt registered as taken
+    return False
+  #else, return a computer number
 
 def main():
   showMenu()
