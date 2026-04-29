@@ -35,31 +35,22 @@ def action_handler():
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
-        if ard.readline().decode().strip() == "False": #False if the pc isnt in the slot
-            if (!sqlMain.addBorrow(id, rsp["computer"])) print(f"{datetime.now()}\tError:\tPC taken but not added to database.")
-            return rsp
-        else: return {"status": "declined", "reason": "notTaken"}
+        thread = threading.Thread(target=backgroundWorker, args=(id, rsp["computer"],False)) ##pc num, False to indicate a "take"
+        return rsp
     elif action == "return":
-        if (request.args.get('computer') is None): 
-            userTakenComputers = sqlMain.userTakenComputers(id)
-        else: userTakenComputers = [request.args.get('computer')]
-        if len(userTakenComputers) == 0:
-            return {"status": "declined", "reason": "userHasNoComputers", "taken": sqlMain.getAllTakenComputers()}
-        if len(userTakenComputers) == 1:
+        if (request.args.get('computer') is None): ##no specific pc indicated
+            userTakenComputers = sqlMain.userTakenComputers(id) ##then fetch a list of user taken pcs
+        else: userTakenComputers = [request.args.get('computer')] ##indicated pc (specific), to list.
+        if len(userTakenComputers) == 0: ##user has no computers and not indicated a pc
+            return {"status": "declined", "reason": "userHasNoComputers", "taken": sqlMain.getAllTakenComputers(id, password)} ##give the app a list of taken computers to suggest to user
+        if len(userTakenComputers) == 1: ##user has one computer or indicated a pc
             rsp = sqlMain.returnPC(id, password,
                                       userTakenComputers[0])
             if rsp["status"] == "approved":
                 ard.write("open".encode()) # send a "open" command to the arduino
                 ard.write(userTakenComputers[0].encode()) # send the computer number to the arduino
                 # Wait up to 5 seconds for a response, checking every 50ms
-                start = time.time()
-                while ard.in_waiting == 0:
-                    if time.time() - start > 5:
-                        return {"status": "declined", "reason": "arduinoTimeout"}
-                    time.sleep(0.05)  # tiny sleep so we don't burn 100% CPU
-                if ard.readline().decode().strip() == True: #True if the pc is in the slot
-                    if (!sqlMain.closeBorrow(id, userTakenComputers[0])): print(f"{datetime.now()}\tError:\tPC returned but not updated in the database.")
-                else: return {"status": "declined", "reason": "unreturned"}
+                thread = threading.Thread(target=backgroundWorker, args=(id, userTakenComputers[0],True)) ##pc num, True to indicate a "return"
             return rsp
         else:
             return {"status": "declined", "reason": "multipleComputers", "list": userTakenComputers}
@@ -70,7 +61,7 @@ def action_handler():
     else:
         return {"status": "error", "reason": "invalid action"}
 
-def backgroundWorker(pc,action): ##pc num, action True if return, False if take
+def backgroundWorker(user,pc,action): ##pc num, action True if return, False if take
     #### check in ard if taken or not
     ard.write("check".encode())
     ard.write(pc.encode())
@@ -80,7 +71,17 @@ def backgroundWorker(pc,action): ##pc num, action True if return, False if take
             print(f"{datetime.now()}\tError:\tArduino timeout.")
             break #stop waiting for the arduino
         time.sleep(0.5)
-    ans = if ard.readline().decode().strip() == "True": #True if the pc is in the slot
+    if action: ## if action is return
+        if ard.readline().decode().strip() == "False":
+            
+    else: ##if action is take
+        if ard.readline().decode().strip() == "False": ##if actually taken
+            sqlMain.addBorrow(user, pc)
+        else:
+            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
+            
+    
+    ans = True if ard.readline().decode().strip() == "True" #True if the pc is in the slot
     
     ### if falslely, adjust sql acrodingly to irl
 def backgroundWorker():
