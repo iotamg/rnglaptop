@@ -7,6 +7,8 @@ from datetime import datetime
 import time
 import threading
 
+thread = threading.Thread(target=backgroundWorker, args=(0,0,0)) ## just temp place holder
+
 ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 #n = ard.readline().decode().strip()
 openedLately = False
