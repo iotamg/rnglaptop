@@ -8,6 +8,7 @@ import time
 
 ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 #n = ard.readline().decode().strip()
+openedLately = False
 
 app = Flask(__name__)
 subprocess.Popen([
