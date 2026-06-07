@@ -6,6 +6,7 @@ import serial
 from datetime import datetime
 import time
 import threading
+import atexit
 
 
 # to read: n = ard.readline().decode().strip()
@@ -21,10 +22,15 @@ except Exception as e:
 openedLately = False
 
 app = Flask(__name__)
-subprocess.Popen([
+ngrok_process = subprocess.Popen([
     "lxterminal", "-e",
     "ngrok http --domain=linette-exudative-delorse.ngrok-free.dev 5000"
 ])  # start ngrok public url forwarding to localhost:5000
+
+def cleanup():
+    ngrok_process.terminate()
+
+atexit.register(cleanup)
 db_conn = pymysql.connect(host="localhost",
                           user="root",
                           password="1234",
