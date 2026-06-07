@@ -290,14 +290,15 @@ if __name__ == "__main__":
   main()
 
 
-GPIO.cleanup()
-GPIO.setmode(GPIO.BCM)
 pcsPins = [26,19,13,6,5]
-GPIO.setup(pcsPins[0], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 1
-GPIO.setup(pcsPins[1], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 2
-GPIO.setup(pcsPins[2], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 3
-GPIO.setup(pcsPins[3], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 4
-GPIO.setup(pcsPins[4], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 5
+try:
+    GPIO.cleanup()
+    GPIO.setmode(GPIO.BCM)
+    for pin in pcsPins:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+except Exception as e:
+    print(f"GPIO setup error: {e}")
+    print("Tip: run 'sudo pkill -f server.py' to kill old processes holding the GPIO pins, then restart.")
 
 def checkInv(): ##check which pcs are in the inventory
     pcsAvailable = []
