@@ -8,9 +8,18 @@ import time
 import threading
 
 
+# to read: n = ard.readline().decode().strip()
 
-ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-#n = ard.readline().decode().strip()
+try:
+    ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+except serial.serialutil.SerialException:
+    print(f"{datetime.now()}\tError:\tArduino not connected.")
+    sys.exit()
+except Exception as e:
+    print(f"{datetime.now()}\tError:\t{e}")
+    sys.exit()
+    
+
 openedLately = False
 
 app = Flask(__name__)
@@ -23,6 +32,44 @@ db_conn = pymysql.connect(host="localhost",
                           password="1234",
                           database="RNG")
 cursor = db_conn.cursor()  
+
+def backgroundWorker(user,pc,action): ##pc num, action True if return, False if take
+    
+    #### voltage version:
+    # ard.write("check".encode())
+    # ard.write(pc.encode())
+    # wait = time.time()
+    # while ard.in_waiting == 0:
+    #     if time.time() - wait > 2:
+    #         print(f"{datetime.now()}\tError:\tArduino timeout.")
+    #         return #stop waiting for the arduino
+    #     time.sleep(0.5)
+    # if action: ## if action is return
+    #     if ard.readline().decode().strip() == "True": ##if actually returned
+    #         systemA.closeBorrow(user, pc)
+    #     else:
+    #         print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be returned but user didn't returned in time.")
+    # else: ##if action is take
+    #     if ard.readline().decode().strip() == "False": ##if actually taken
+    #         systemA.addBorrow(user, pc)
+    #     else:
+    #         print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
+
+    #### no voltage version:
+    pcs = systemA.checkInv()
+    if action: ## if action is return
+        if pc in pcs: ##if actually returned
+            systemA.closeBorrow(user, pc)
+        else:
+            ## Dont sign as returned, keep borrow open
+            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be returned but user didn't returned in time.")
+    else: ##if action is take
+        if pc not in pcs: ##if actually taken
+            systemA.addBorrow(user, pc)
+            print(f"{datetime.now()}\tTake:\tPC {pc} was taken by user {user}.")
+        else:
+            ## Dont sign as taken, do not make a borrow
+            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
 thread = threading.Thread(target=backgroundWorker, args=(0,0,0))
 
 @app.route('/action', methods=['GET'])
@@ -65,31 +112,6 @@ def action_handler():
         return systemA.getAllTakenComputers(id, password)
     else:
         return {"status": "error", "reason": "invalid action"}
-
-def backgroundWorker(user,pc,action): ##pc num, action True if return, False if take
-    #### check in ard if taken or not
-    ard.write("check".encode())
-    ard.write(pc.encode())
-    wait = time.time()
-    while ard.in_waiting == 0:
-        if time.time() - wait > 2:
-            print(f"{datetime.now()}\tError:\tArduino timeout.")
-            return #stop waiting for the arduino
-        time.sleep(0.5)
-    if action: ## if action is return
-        if ard.readline().decode().strip() == "True": ##if actually returned
-            systemA.closeBorrow(user, pc)
-        else:
-            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be returned but user didn't returned in time.")
-    else: ##if action is take
-        if ard.readline().decode().strip() == "False": ##if actually taken
-            systemA.addBorrow(user, pc)
-        else:
-            print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
-
-
-
-        
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
