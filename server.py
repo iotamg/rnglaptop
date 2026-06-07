@@ -13,11 +13,9 @@ import threading
 try:
     ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 except serial.serialutil.SerialException:
-    print(f"{datetime.now()}\tError:\tArduino not connected.")
-    quit("Alon is Wrong")
+    quit(f"{datetime.now()}\tError:\tArduino not connected.")
 except Exception as e:
-    print(f"{datetime.now()}\tError:\t{e}")
-    quit()
+    quit(f"{datetime.now()}\tError:\t{e}")
     
 
 openedLately = False

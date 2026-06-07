@@ -3,6 +3,7 @@ import time
 import RPi.GPIO as GPIO
 import random
 from datetime import datetime
+import atexit
 
 
 
@@ -289,6 +290,7 @@ if __name__ == "__main__":
   main()
 
 
+GPIO.cleanup()
 GPIO.setmode(GPIO.BCM)
 pcsPins = [26,19,13,6,5]
 GPIO.setup(pcsPins[0], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 1
@@ -304,3 +306,7 @@ def checkInv(): ##check which pcs are in the inventory
             pcsAvailable.append(i+1) ##pc in stock
     print(f"{datetime.now()}\tCheckInv:\t{pcsAvailable}")
     return pcsAvailable
+
+def cleanup():
+    GPIO.cleanup()
+atexit.register(cleanup)
