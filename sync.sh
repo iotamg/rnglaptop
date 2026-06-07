@@ -4,18 +4,17 @@ REPO_URL="${1:-}"
 TARGET_DIR="${2:-./replit-project}"
 
 if [ -z "$REPO_URL" ]; then
-    echo "Usage: ./sync_to_pi.sh <github-repo-url> [target-directory]"
-    echo "Example: ./sync_to_pi.sh https://github.com/username/my-replit-project /home/pi/my-project"
+    echo "Usage: ./sync.sh <github-repo-url> [target-directory]"
+    echo "Example: ./sync.sh https://github.com/username/my-replit-project /home/pi/my-project"
     exit 1
 fi
 
 if [ ! -d "$TARGET_DIR" ]; then
     echo "Cloning repository for the first time..."
-    git clone "$REPO_URL" "$TARGET_DIR"
-    cd "$TARGET_DIR"
-else
-    cd "$TARGET_DIR"
+    git clone "$REPO_URL" "$TARGET_DIR" || { echo "Error: git clone failed."; exit 1; }
 fi
+
+cd "$TARGET_DIR" || { echo "Error: could not enter $TARGET_DIR"; exit 1; }
 
 echo "Starting sync loop - checking for updates every 10 seconds"
 echo "Press Ctrl+C to stop"
