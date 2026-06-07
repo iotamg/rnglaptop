@@ -14,10 +14,10 @@ try:
     ard = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 except serial.serialutil.SerialException:
     print(f"{datetime.now()}\tError:\tArduino not connected.")
-    sys.exit()
+    quit("Alon is Wrong")
 except Exception as e:
     print(f"{datetime.now()}\tError:\t{e}")
-    sys.exit()
+    quit()
     
 
 openedLately = False
