@@ -1,5 +1,10 @@
 import pymysql
-import time as t
+import time
+import RPi.GPIO as GPIO
+import random
+from datetime import datetime
+
+
 
 conn = None
 cursor = None
@@ -204,21 +209,6 @@ def check_login(user, password):
     return False
 
 
-def getComputer():
-  if not cursor:
-    return 0
-  sql = """
-    SELECT laptopID FROM laptops
-    WHERE laptopID NOT IN (SELECT laptopID FROM borrows) AND functional=1
-    """
-  cursor.execute(sql)
-  result = cursor.fetchall()
-  if len(result) == 0:  #if there is no computers availabe, return 0
-    return 0
-  #else, return a computer number
-  return result[0][0]
-
-
 #return a list of computers that the user has taken
 def userTakenComputers(id):
   if not cursor:
@@ -264,11 +254,13 @@ def login(id, password):
 
 def borrow(id, password):
   if (check_login(id, password)):
-    computer = getComputer()  #0 if no computer available, else computer number
-    if computer == 0:
+    
+    ##code without voltage checking
+    computer = checkInv()
+    if not computer: ##empty list
       return {"status": "declined", "reason": "noComputers"}
     else:
-      return {"status": "approved", "computer": computer}
+      return {"status": "approved", "computer": computer[random.randint(0,len(computer)-1)]}
   else:
     return {"status": "declined", "reason": "credentials"}
 
@@ -295,3 +287,20 @@ def main():
 
 if __name__ == "__main__":
   main()
+
+
+GPIO.setmode(GPIO.BCM)
+pcsPins = [26,19,13,6,5]
+GPIO.setup(pcsPins[0], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 1
+GPIO.setup(pcsPins[1], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 2
+GPIO.setup(pcsPins[2], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 3
+GPIO.setup(pcsPins[3], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 4
+GPIO.setup(pcsPins[4], GPIO.IN, pull_up_down=GPIO.PUD_UP) ## 5
+
+def checkInv(): ##check which pcs are in the inventory
+    pcsAvailable = []
+    for i in range(len(pcsPins)):
+        if GPIO.input(pcsPins[i]) == GPIO.LOW:
+            pcsAvailable.append(i+1) ##pc in stock
+    print(f"{datetime.now()}\tCheckInv:\t{pcsAvailable}")
+    return pcsAvailable

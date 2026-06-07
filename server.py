@@ -1,7 +1,7 @@
 from flask import Flask, request
 import pymysql
 import subprocess
-import sqlMain
+import systemA
 import serial
 from datetime import datetime
 import time
@@ -22,8 +22,8 @@ db_conn = pymysql.connect(host="localhost",
                           user="root",
                           password="1234",
                           database="RNG")
-cursor = db_conn.cursor()  # globally??
-
+cursor = db_conn.cursor()  
+thread = threading.Thread(target=backgroundWorker, args=(0,0,0))
 
 @app.route('/action', methods=['GET'])
 def action_handler():
@@ -31,23 +31,25 @@ def action_handler():
     id = request.args.get('user')
     password = request.args.get('password')
     if action == "login":
-        return sqlMain.login(id, password)
+        return systemA.login(id, password)
     elif action == "take":
         thread.join() ##don't execute anything until thread is closed
-        rsp = sqlMain.borrow(id, password)
+        rsp = systemA.borrow(id, password)
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
         thread = threading.Thread(target=backgroundWorker, args=(id, rsp["computer"],False)) ##pc num, False to indicate a "take"
+        print(f"{datetime.now()}\tTake:\tAssigned PC {rsp['computer']} to user: {id}")
         return rsp
     elif action == "return":
         if (request.args.get('computer') is None): ##no specific pc indicated
-            userTakenComputers = sqlMain.userTakenComputers(id) ##then fetch a list of user taken pcs
+            userTakenComputers = systemA.userTakenComputers(id) ##then fetch a list of user taken pcs
         else: userTakenComputers = [request.args.get('computer')] ##indicated pc (specific), to list.
         if len(userTakenComputers) == 0: ##user has no computers and not indicated a pc
-            return {"status": "declined", "reason": "userHasNoComputers", "taken": sqlMain.getAllTakenComputers(id, password)} ##give the app a list of taken computers to suggest to user
+            return {"status": "declined", "reason": "userHasNoComputers", "taken": systemA
+                    .getAllTakenComputers(id, password)} ##give the app a list of taken computers to suggest to user
         if len(userTakenComputers) == 1: ##user has one computer or indicated a pc
-            rsp = sqlMain.returnPC(id, password,
+            rsp = systemA.returnPC(id, password,
                                       userTakenComputers[0])
             if rsp["status"] == "approved":
                 ard.write("open".encode()) # send a "open" command to the arduino
@@ -60,7 +62,7 @@ def action_handler():
                 
         
     elif action == "listTakenComputers":
-        return sqlMain.getAllTakenComputers(id, password)
+        return systemA.getAllTakenComputers(id, password)
     else:
         return {"status": "error", "reason": "invalid action"}
 
@@ -76,16 +78,17 @@ def backgroundWorker(user,pc,action): ##pc num, action True if return, False if 
         time.sleep(0.5)
     if action: ## if action is return
         if ard.readline().decode().strip() == "True": ##if actually returned
-            sqlMain.closeBorrow(user, pc)
+            systemA.closeBorrow(user, pc)
         else:
             print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be returned but user didn't returned in time.")
     else: ##if action is take
         if ard.readline().decode().strip() == "False": ##if actually taken
-            sqlMain.addBorrow(user, pc)
+            systemA.addBorrow(user, pc)
         else:
             print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
 
-thread = threading.Thread(target=backgroundWorker, args=(0,0,0)) ## just temp place holder
+
+
         
 
 if __name__ == "__main__":
