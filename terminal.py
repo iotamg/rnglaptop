@@ -4,7 +4,7 @@ conn = None
 cursor = None
 try:
     conn = pymysql.connect(
-        host="localhost", user="root", password="1234", database="RNG"
+        host="localhost", user="root", password="1234", database="RNG", autocommit=True
     )
     cursor = conn.cursor()
 except pymysql.Error as e:
@@ -15,12 +15,13 @@ def initTables():
     if not cursor:
         return
     try:
-        sql = """
-    DROP TABLE IF EXISTS users;
-    DROP TABLE IF EXISTS laptops;
-    DROP TABLE IF EXISTS borrows;
-    DROP TABLE IF EXISTS history;
-    """
+        sql = """DROP TABLE IF EXISTS history;"""
+        cursor.execute(sql)
+        sql = """DROP TABLE IF EXISTS borrows;"""
+        cursor.execute(sql)
+        sql = """DROP TABLE IF EXISTS laptops;"""
+        cursor.execute(sql)
+        sql = """DROP TABLE IF EXISTS users;"""
         cursor.execute(sql)
         sql = """
     CREATE TABLE IF NOT EXISTS users (
@@ -36,9 +37,7 @@ def initTables():
     CREATE TABLE IF NOT EXISTS laptops(
         laptopID INTEGER PRIMARY KEY NOT NULL,
         grade TEXT NOT NULL,
-        number TEXT NOT NULL,
-        date_of_purchase DATE NOT NULL,
-        functional BOOLEAN NOT NULL
+        number TEXT NOT NULL
     )
     """
         cursor.execute(sql)
@@ -55,14 +54,15 @@ def initTables():
         cursor.execute(sql)
         sql = """
       CREATE TABLE IF NOT EXISTS history(
-         hisrotyID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+         historyID INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
          userTake INTEGER REFERENCES users(id),
          userReturn INTEGER REFERENCES users(id) NOT NULL,
          laptopID INTEGER  REFERENCES laptops(laptopID) NOT NULL,
          start DATETIME NOT NULL,
-     end DATETIME NOT NULL CHECK(endDate>startDate)
+     end DATETIME NOT NULL CHECK(end > start)
       );
     """
+        cursor.execute(sql)
     except pymysql.Error as e:
         print(f"SQL Error: {e}")
 
@@ -72,19 +72,19 @@ def addUser(id_, password_, name_, mahzor_):
         return
     try:
         sql = f"""INSERT into users (id, password, name, mahzor, strikes) VALUES (
-    '{id_}','{password_}','{name_}','{mahzor_}')
+    '{id_}','{password_}','{name_}','{mahzor_}',0)
     """
         cursor.execute(sql)
     except pymysql.Error as e:
         print(f"SQL Error: {e}")
 
 
-def addComputer(id_, grade_, number_, date_, functional_):
+def addComputer(id_, grade_, number_):
     if not cursor:
         return
     try:
-        sql = f"""INSERT into laptops (laptopID, grade, number, date_of_purchase, functional) VALUES (
-    '{id_}','{grade_}','{number_}','{date_}',1)
+        sql = f"""INSERT into laptops (laptopID, grade, number) VALUES (
+    '{id_}','{grade_}','{number_}')
     """
         cursor.execute(sql)
     except pymysql.Error as e:
@@ -102,7 +102,6 @@ def showMenu():
         2. Add User
         3. Add Computer
         4. Show Users
-        5. not fucntional
         0. Exit""")
             choice = input("Enter your choice: ")
             if choice == "1":
@@ -110,33 +109,23 @@ def showMenu():
             elif choice == "2":
                 ID = input("id=?")
                 NAME = input("name=?")
-                PASWORD = input("password=?")
+                PSWD = input("password=?")
                 grade = input("machzor=?")
-                addUser(ID, PASWORD, NAME, grade)
+                addUser(ID, PSWD, NAME, grade)
             elif choice == "3":
                 ID = input("id=?")
                 GRADE = input("grade=?")
                 NUMBER = input("number=?")
-                DATE = input("date=?")
-                addComputer(ID, GRADE, NUMBER, DATE, 1)
+                addComputer(ID, GRADE, NUMBER)
             elif choice == "4":
                 cursor.execute("SELECT * FROM users")
                 results = cursor.fetchall()
                 print(results)
-            elif choice == "5":
-                if input("by id? (yes to confirm)") == "yes":
-                    ID = input("id=?")
-                    cursor.execute(f"SET functional=0 WHERE laptopID={ID}")
-                FUCTIONAL = input("fuctional=?")
-                GRADE = input("grade=?")
-                NUMBER = input("number=?")
-                cursor.execute(
-                    f"SET functional={FUCTIONAL} WHERE grade={GRADE} AND number={NUMBER}"
-                )
             elif choice == "0":
                 keepOn = False
                 conn.close()
-            conn.commit()
+            if keepOn and conn:
+                conn.commit()
     except pymysql.Error as e:
         print(f"SQL Error: {e}")
 

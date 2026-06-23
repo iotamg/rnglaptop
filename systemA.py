@@ -23,12 +23,10 @@ def addBorrow(borrower, pc):
     return False
   try:
     sql = f"""
-            WHEN NOT EXISTS (SELECT 1 FROM borrows WHERE laptopID={pc}) 
-            THEN
-              INSERT into borrows(laptopID,userTake,start) VALUES (
-              {pc},{borrower},NOW()
-              );
-        """
+        INSERT INTO borrows (laptopID, userTake, start)
+        SELECT {pc}, {borrower}, NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM borrows WHERE laptopID = {pc});
+    """
     cursor.execute(sql)
     return True if cursor.rowcount == 1 else False
   except pymysql.Error as e:
@@ -82,16 +80,12 @@ def check_login(user, password):
 def userTakenComputers(id):
   if not cursor:
     return []
-  sql = f"""
-    SELECT laptopID FROM history
-    WHERE borworer={id}
-    GROUP BY laptopID
-    """
+  sql = f"SELECT laptopID FROM borrows WHERE userTake = {id}"
   cursor.execute(sql)
   result = cursor.fetchall()
   arr = []
-  for i in range(len(result)):
-    arr[i] = result[i][0]
+  for pc in result:
+    arr.append(pc[0])
   return arr
 
 
@@ -105,8 +99,8 @@ def allTakenComputers():
   cursor.execute(sql)
   result = cursor.fetchall()
   arr = []
-  for i in range(len(result)):
-    arr[i] = result[i][0]
+  for pc in result:
+    arr.append(pc[0])
   return arr
 
 
@@ -137,7 +131,7 @@ def borrow(id, password):
 def returnPC(id, password, pc):
   if (check_login(id, password)):
     pcs = allTakenComputers()
-    if pc not in pcs:
+    if int(pc) not in pcs:
       return {"status": "declined", "reason": "notTaken"}
     return {"status": "approved", "computer": pc}
   else:

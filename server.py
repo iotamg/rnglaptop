@@ -34,7 +34,8 @@ atexit.register(cleanup)
 db_conn = pymysql.connect(host="localhost",
                           user="root",
                           password="1234",
-                          database="RNG")
+                          database="RNG",
+                          autocommit=True)
 cursor = db_conn.cursor()  
 
 def backgroundWorker(user,pc,action): ##pc num, action True if return, False if take
@@ -74,25 +75,30 @@ def backgroundWorker(user,pc,action): ##pc num, action True if return, False if 
         else:
             ## Dont sign as taken, do not make a borrow
             print(f"{datetime.now()}\tAlert:\tPC {pc} was assigned to be taken but user didn't took in time.")
-thread = threading.Thread(target=backgroundWorker, args=(0,0,0))
+thread = None
 
 @app.route('/action', methods=['GET'])
 def action_handler():
+    global thread
     action = request.args.get('action')
     id = request.args.get('user')
     password = request.args.get('password')
     if action == "login":
         return systemA.login(id, password)
     elif action == "take":
-        thread.join() ##don't execute anything until thread is closed
+        if thread is not None and thread.is_alive():
+            thread.join() ##don't execute anything until thread is closed
         rsp = systemA.borrow(id, password)
         if rsp["status"] == "approved":
             ard.write("open".encode()) # send an "open" command to the arduino
             ard.write(rsp["computer"].encode()) # send the computer number to the arduino
-        thread = threading.Thread(target=backgroundWorker, args=(id, rsp["computer"],False)) ##pc num, False to indicate a "take"
-        print(f"{datetime.now()}\tTake:\tAssigned PC {rsp['computer']} to user: {id}")
+            thread = threading.Thread(target=backgroundWorker, args=(id, rsp["computer"],False)) ##pc num, False to indicate a "take"
+            thread.start()
+            print(f"{datetime.now()}\tTake:\tAssigned PC {rsp['computer']} to user: {id}")
         return rsp
     elif action == "return":
+        if thread is not None and thread.is_alive():
+            thread.join() ##don't execute anything until thread is closed
         if (request.args.get('computer') is None): ##no specific pc indicated
             userTakenComputers = systemA.userTakenComputers(id) ##then fetch a list of user taken pcs
         else: userTakenComputers = [request.args.get('computer')] ##indicated pc (specific), to list.
@@ -107,12 +113,15 @@ def action_handler():
                 ard.write(userTakenComputers[0].encode()) # send the computer number to the arduino
                 # Wait up to 5 seconds for a response, checking every 50ms
                 thread = threading.Thread(target=backgroundWorker, args=(id, userTakenComputers[0],True)) ##pc num, True to indicate a "return"
+                thread.start()
             return rsp
         else:
             return {"status": "declined", "reason": "multipleComputers", "list": userTakenComputers}
                 
         
     elif action == "listTakenComputers":
+        if thread is not None and thread.is_alive():
+            thread.join() ##don't execute anything until thread is closed
         return systemA.getAllTakenComputers(id, password)
     else:
         return {"status": "error", "reason": "invalid action"}
