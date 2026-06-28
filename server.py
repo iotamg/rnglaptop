@@ -95,6 +95,7 @@ def action_handler():
             thread = threading.Thread(target=backgroundWorker, args=(id, rsp["computer"],False)) ##pc num, False to indicate a "take"
             thread.start()
             print(f"{datetime.now()}\tTake:\tAssigned PC {rsp['computer']} to user: {id}")
+        print("Response: ", rsp)
         return rsp
     elif action == "return":
         if thread is not None and thread.is_alive():
@@ -103,6 +104,8 @@ def action_handler():
             userTakenComputers = systemA.userTakenComputers(id) ##then fetch a list of user taken pcs
         else: userTakenComputers = [request.args.get('computer')] ##indicated pc (specific), to list.
         if len(userTakenComputers) == 0: ##user has no computers and not indicated a pc
+            print({"status": "declined", "reason": "userHasNoComputers", "taken": systemA
+                     .getAllTakenComputers(id, password)})
             return {"status": "declined", "reason": "userHasNoComputers", "taken": systemA
                     .getAllTakenComputers(id, password)} ##give the app a list of taken computers to suggest to user
         if len(userTakenComputers) == 1: ##user has one computer or indicated a pc
@@ -114,8 +117,10 @@ def action_handler():
                 # Wait up to 5 seconds for a response, checking every 50ms
                 thread = threading.Thread(target=backgroundWorker, args=(id, userTakenComputers[0],True)) ##pc num, True to indicate a "return"
                 thread.start()
+            print("Response: ", rsp)
             return rsp
         else:
+            print({"status": "declined", "reason": "multipleComputers", "list": userTakenComputers})
             return {"status": "declined", "reason": "multipleComputers", "list": userTakenComputers}
                 
         
