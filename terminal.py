@@ -55,12 +55,15 @@ def initTables():
         sql = """
       CREATE TABLE IF NOT EXISTS history(
          historyID INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-         userTake INTEGER REFERENCES users(id),
-         userReturn INTEGER REFERENCES users(id) NOT NULL,
-         laptopID INTEGER  REFERENCES laptops(laptopID) NOT NULL,
+         userTake INTEGER,
+         userReturn INTEGER NOT NULL,
+         laptopID INTEGER NOT NULL,
          start DATETIME NOT NULL,
-     end DATETIME NOT NULL CHECK(end > start)
-      );
+         endDate DATETIME NOT NULL,
+         FOREIGN KEY (userTake) REFERENCES users(id),
+         FOREIGN KEY (userReturn) REFERENCES users(id),
+         FOREIGN KEY (laptopID) REFERENCES laptops(laptopID)
+      )
     """
         cursor.execute(sql)
     except pymysql.Error as e:
