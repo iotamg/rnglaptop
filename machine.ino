@@ -62,11 +62,11 @@ void loop() {
     t = millis();
     if (msg == "open") {
       //Serial.println("Opening");
-      while (!Serial.available() && millis() - t < 5000) {
+      while (!Serial.available() && millis() - t < 1000) {
         delay(500);
         //Serial.println("Waiting");
       }
-      if (millis() - t < 5000) {
+      if (millis() - t < 1000) {
         msg = Serial.readStringUntil('\n');
         //Serial.println(msg);
         actuateMechanism(msg.toInt(),1);}  //conversion of msg to int
