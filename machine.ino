@@ -9,13 +9,20 @@ int servoPin = 9; // Connect the yellow/white signal wire to Digital Pin 9
 String msg = "";
 unsigned long t = 0;
 unsigned long tempT = 0;
+unsigned long moveT = 0; //for timimng closure sequence
 int yes = 1;
 #define mf 2  //m-motor  f-forword
 #define mr 4  //m-motor  r-reverse
-#define r1 5 //relay 1-5
-#define r2 6 //relay 1-5
-#define r3 7 //relay 1-5
-#define r4 8 //relay 1-5
+#define rA 5 //relay A (1 and B)
+#define rB 6 //relay B (2 and C)
+#define rC 7 //relay C (3 and D)
+#define rD 8 //relay D (4 and 5)
+#define ms1 3 //motor switch (pc 1)
+#define ms3 12 //motor switch (pc 3)
+#define ms4 11 //motor switch (pc 4)
+#define ms5 10 //motor switch (pc 5)
+
+#define timeToMove 2000 //time it takes to move the pin a whole way.
 
 #define fans 13 //relay that controls fans
 
@@ -33,10 +40,10 @@ void setup() {
   pinMode(fans,OUTPUT);
   pinMode(mf, OUTPUT);
   pinMode(mr, OUTPUT);
-  pinMode(r1, OUTPUT);
-  pinMode(r2, OUTPUT);
-  pinMode(r3, OUTPUT);
-  pinMode(r4, OUTPUT);
+  pinMode(rA, OUTPUT);
+  pinMode(rB, OUTPUT);
+  pinMode(rC, OUTPUT);
+  pinMode(rD, OUTPUT);
   dht.begin();  //starting the dht
 
   // Good practice: ensure the motor starts in a stopped state
@@ -49,16 +56,21 @@ void setup() {
 void loop() {
   checkTemp();
   if ( Serial.available()) {
+    //Serial.println("in loop");
     msg = Serial.readStringUntil('\n');
     //Serial.println(msg);
     t = millis();
     if (msg == "open") {
-      while (!Serial.available() && millis() - t < 1000) {
-        delay(50);
+      //Serial.println("Opening");
+      while (!Serial.available() && millis() - t < 5000) {
+        delay(500);
+        //Serial.println("Waiting");
       }
-      if (millis() - t < 1000) {
+      if (millis() - t < 5000) {
         msg = Serial.readStringUntil('\n');
+        //Serial.println(msg);
         actuateMechanism(msg.toInt(),1);}  //conversion of msg to int
+      //else Serial.println("Timeout");
     } else if (msg == "close") {
         while (!Serial.available() && millis() - t < 1000) {
           delay(50);
@@ -87,52 +99,55 @@ void checkTemp(){
 }
 
 void actuateMechanism(int num, int dir) {
+// Serial.print("AM. PC: ");
+// Serial.print(num);
+// Serial.print(". dir: ");
+// Serial.println(dir);
 // dir: 1 to open, -1 to close
 if (dir == 1){
-  switch (num) { //angle devided by axon max (355) multiplied by .write func max (180)
-    case 1: axonServo.write(23);  break; //actually 45
-    case 2: axonServo.write(46);  break;
-    case 3: axonServo.write(68);  break;
-    case 4: axonServo.write(91);  break;
-    case 5: axonServo.write(114); break;
-    default:
-      Serial.println("Error: Invalid slot number");
-      return;
-    }
-    delay(1500);
+  if (num > 0 && num < 6) axonServo.write(map(num*45,0,355,0,180)); //each position is 45 degrees apart. mapped to the max value 180 (which is actually moves 355)
+  else  Serial.println("Error: Invalid slot number");
+  delay(1500);
   }
   //setting the relays to choose the correct motor
-  digitalWrite(r1, (num >= 2) ? HIGH : LOW);
-  digitalWrite(r2, (num >= 3) ? HIGH : LOW);
-  digitalWrite(r3, (num >= 4) ? HIGH : LOW);
-  digitalWrite(r4, (num >= 5) ? HIGH : LOW);
-
-  //Close circuits
-  if (num == 2) digitalWrite(r2, LOW);
-  if (num == 3) digitalWrite(r3, LOW);
-  if (num == 4) digitalWrite(r4, LOW);
+  digitalWrite(rA, (num >= 2) ? LOW : HIGH);
+  digitalWrite(rB, (num >= 3) ? LOW : HIGH);
+  digitalWrite(rC, (num >= 4) ? LOW : HIGH);
+  digitalWrite(rD, (num >= 5) ? LOW : HIGH);
 
   if (dir == 1) {
     // Open
     digitalWrite(mr, LOW);
     digitalWrite(mf, HIGH);
+    delay(timeToMove);
   } else if (dir == -1) {
-    // Close sequence
+    // Close
     digitalWrite(mr, HIGH);
     digitalWrite(mf, LOW);
+    moveT = millis();
+    while (millis() - moveT < timeToMove || !checkMotor(num)) delay(50); //if it hasent touched and not enough time -> wait.
   }
-  delay(2000);
   digitalWrite(mr, LOW);
   digitalWrite(mf, LOW);
   
-  digitalWrite(r1, LOW);
-  digitalWrite(r2, LOW);
-  digitalWrite(r3, LOW);
-  digitalWrite(r4, LOW);
+  digitalWrite(rA, HIGH);
+  digitalWrite(rB, HIGH);
+  digitalWrite(rC, HIGH);
+  digitalWrite(rD, HIGH);
 
   if (dir == -1) axonServo.write(0);
 }
 
+bool checkMotor(int pc){
+  //true if touched the switch. else false
+  switch (pc){
+    case 1: return digitalRead(ms1);
+    case 2: return false;
+    case 3: return digitalRead(ms3);
+    case 4: return digitalRead(ms4);
+    case 5: return digitalRead(ms5);
+  }
+}
 int voltage(int pc){
   float cu = currents[pc - 1].mA_AC(50); //milliamperes
   //100% is under 184mA
