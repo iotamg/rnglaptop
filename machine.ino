@@ -1,5 +1,6 @@
 #include <Servo.h>
 #include "DHT.h"
+#include "ACS712.h"
 #define DHTPIN A5           // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11      //seting the type of senser that shon and me are using
 DHT dht(DHTPIN, DHTTYPE);  // Initialize DHT sensor.
