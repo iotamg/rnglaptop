@@ -140,7 +140,7 @@ def returnPC(id, password, pc):
 
 def getAllTakenComputers(id, password):
   if (check_login(id, password)):
-    return {"list": allTakenComputers()}  #a list, of what computers are taken
+    return allTakenComputers()  #a list, of what computers are taken
   else:
     return {"status": "declined", "reason": "credentials"}
 
