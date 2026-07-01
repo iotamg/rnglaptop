@@ -145,6 +145,7 @@ def getAllTakenComputers(id, password):
     return {"status": "declined", "reason": "credentials"}
 
 pcsPins = [26,19,13,6,5]
+broken = [2,3]
 try:
     GPIO.cleanup()
     GPIO.setmode(GPIO.BCM)
@@ -157,8 +158,9 @@ except Exception as e:
 def checkInv(): ##check which pcs are in the inventory
     pcsAvailable = []
     for i in range(len(pcsPins)):
-        if GPIO.input(pcsPins[i]) == GPIO.LOW:
-            pcsAvailable.append(i+1) ##pc in stock
+        if i+1 not in broken:
+          if GPIO.input(pcsPins[i]) == GPIO.LOW:
+              pcsAvailable.append(i+1) ##pc in stock
     print(f"{datetime.now()}\tCheckInv:\t{pcsAvailable}")
     return pcsAvailable
 

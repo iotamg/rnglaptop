@@ -11,8 +11,8 @@ unsigned long t = 0;
 unsigned long tempT = 0;
 unsigned long moveT = 0; //for timimng closure sequence
 int yes = 1;
-#define mf 2  //m-motor  f-forword
-#define mr 4  //m-motor  r-reverse
+#define mf 4  //m-motor  f-forword
+#define mr 2  //m-motor  r-reverse
 #define rA 5 //relay A (1 and B)
 #define rB 6 //relay B (2 and C)
 #define rC 7 //relay C (3 and D)
@@ -22,7 +22,7 @@ int yes = 1;
 #define ms4 11 //motor switch (pc 4)
 #define ms5 10 //motor switch (pc 5)
 
-#define timeToMove 2000 //time it takes to move the pin a whole way.
+#define timeToMove 400 //time it takes to move the pin a whole way.
 
 #define fans 13 //relay that controls fans
 
@@ -50,27 +50,30 @@ void setup() {
   axonServo.write(0);
   digitalWrite(mr, LOW);
   digitalWrite(mf, LOW);
-  axonServo.write(0);
+  digitalWrite(rA, HIGH);
+  digitalWrite(rB, HIGH);
+  digitalWrite(rC, HIGH);
+  digitalWrite(rD, HIGH);
 }
 
 void loop() {
   checkTemp();
   if ( Serial.available()) {
-    //Serial.println("in loop");
+    Serial.println("in loop");
     msg = Serial.readStringUntil('\n');
-    //Serial.println(msg);
+    Serial.println(msg);
     t = millis();
     if (msg == "open") {
       //Serial.println("Opening");
       while (!Serial.available() && millis() - t < 1000) {
-        delay(500);
-        //Serial.println("Waiting");
+        delay(50);
+        Serial.println("Waiting");
       }
       if (millis() - t < 1000) {
         msg = Serial.readStringUntil('\n');
-        //Serial.println(msg);
+        Serial.println(msg);
         actuateMechanism(msg.toInt(),1);}  //conversion of msg to int
-      //else Serial.println("Timeout");
+      else Serial.println("Timeout");
     } else if (msg == "close") {
         while (!Serial.available() && millis() - t < 1000) {
           delay(50);
@@ -79,7 +82,7 @@ void loop() {
           msg = Serial.readStringUntil('\n');
           actuateMechanism(msg.toInt(), -1);}  //conversion of msg to int
     } else if (msg == "volt") {
-          while (!Serial.available() && millis() - t < 2000) {
+          while (!Serial.available() && millis() - t < 1000) {
             delay(50);
           }
           if (millis() - t < 1000) {
@@ -106,8 +109,10 @@ void actuateMechanism(int num, int dir) {
 // dir: 1 to open, -1 to close
 if (dir == 1){
   if (num > 0 && num < 6) axonServo.write(map(num*45,0,355,0,180)); //each position is 45 degrees apart. mapped to the max value 180 (which is actually moves 355)
-  else  Serial.println("Error: Invalid slot number");
-  delay(1500);
+  else  {
+    Serial.println("Error: Invalid slot number");
+    return;}
+  delay(2500);
   }
   //setting the relays to choose the correct motor
   digitalWrite(rA, (num >= 2) ? LOW : HIGH);
