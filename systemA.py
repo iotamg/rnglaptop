@@ -123,6 +123,8 @@ def borrow(id, password):
     if not computer: ##empty list
       return {"status": "declined", "reason": "noComputers"}
     else:
+      if 4 in computer:
+        return {"status": "approved", "computer": 4}
       return {"status": "approved", "computer": computer[random.randint(0,len(computer)-1)]}
   else:
     return {"status": "declined", "reason": "credentials"}
